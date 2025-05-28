@@ -13,11 +13,7 @@ export default {
     }),
   
   verifyToken: (token) => 
-  axios.post('/auth/verify-token', {}, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  }),
+    axios.post('/auth/verify-token'),
 
   
   getAdminData: () => 
@@ -25,5 +21,17 @@ export default {
       headers: { 
         Authorization: `Bearer ${localStorage.getItem('token')}` 
       }
-    })
+    }),
+
+  actualizarPassword: async (currentPassword, newPassword) => {
+    try {
+      const response = await axios.post('/auth/update-password', {
+        currentPassword,
+        newPassword
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
 };

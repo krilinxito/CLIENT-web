@@ -12,27 +12,37 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-
- const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   setIsSubmitting(true);
   setError('');
 
   try {
     const usuario = await login(email, password, captchaToken);
-
-    if (usuario.rol === 'admin') {
-      navigate('/menu');
-    } else {
-      navigate('/usuario'); // o la ruta que desees para no admins
+    
+    // Añadir verificación de respuesta
+    if (!usuario) {
+      throw new Error('No se recibieron datos de usuario');
     }
 
+    // Debug: Verificar estructura completa
+    console.log('Datos de usuario recibidos:', usuario);
+
+    // Redirección condicional mejorada
+    const targetPath = usuario.rol === 'admin' 
+      ? '/menu' 
+      : usuario.rol === 'empleado'
+        ? '/usuario/pedidos-activos'
+        : '/';
+
+    navigate(targetPath);
+
   } catch (err) {
-    setError(err.response?.data?.error || 'Error en el inicio de sesión');
+    setError(err.message || 'Error en el inicio de sesión');
   } finally {
     setIsSubmitting(false);
   }
- };
+};
 
   return (
     <Container maxWidth="xs">

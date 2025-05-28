@@ -3,7 +3,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Divider,
@@ -13,7 +13,9 @@ import {
   Inventory,
   ListAlt,
   Settings,
-  Dashboard
+  History,
+  AccountBalanceWallet,
+  Assessment
 } from '@mui/icons-material';
 
 const Sidebar = () => {
@@ -26,37 +28,91 @@ const Sidebar = () => {
     }}>
       <List>
         <NavLink to="/menu" style={{ textDecoration: 'none', color: 'inherit' }}>
-  {({ isActive }) => (
-    <ListItem button selected={isActive}>
-      <ListItemIcon>
-        <Inventory />
-      </ListItemIcon>
-      <ListItemText primary="Productos" />
-    </ListItem>
-  )}
-</NavLink>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <Inventory />
+              </ListItemIcon>
+              <ListItemText primary="Productos" />
+            </ListItemButton>
+          )}
+        </NavLink>
         
-        {/* Ejemplo de otros items del menú */}
         <NavLink to="/pedidos-dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
           {({ isActive }) => (
-            <ListItem button selected={isActive}>
+            <ListItemButton selected={isActive}>
               <ListItemIcon>
                 <ListAlt />
               </ListItemIcon>
-              <ListItemText primary="Pedidos" />
-            </ListItem>
+              <ListItemText primary="Pedidos Activos" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/pedidos-cancelados" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <History />
+              </ListItemIcon>
+              <ListItemText primary="Pedidos Cancelados" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/historial-pedidos" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <History />
+              </ListItemIcon>
+              <ListItemText primary="Historial de Pedidos" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/resumen-caja" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <AccountBalanceWallet />
+              </ListItemIcon>
+              <ListItemText primary="Resumen de Caja" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/arqueos" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <Assessment />
+              </ListItemIcon>
+              <ListItemText primary="Historial de Arqueos" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/estadisticas" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <Assessment />
+              </ListItemIcon>
+              <ListItemText primary="Estadísticas" />
+            </ListItemButton>
           )}
         </NavLink>
 
         <Divider sx={{ my: 1 }} />
 
         <NavLink to="/configuracion" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItem button>
+          <ListItemButton>
             <ListItemIcon>
               <Settings />
             </ListItemIcon>
             <ListItemText primary="Configuración" />
-          </ListItem>
+          </ListItemButton>
         </NavLink>
       </List>
     </Box>

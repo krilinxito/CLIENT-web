@@ -1,4 +1,4 @@
-// src/api/productApi.js (por ejemplo)
+// src/API/productsApi.js (por ejemplo)
 import axios from './axios';
 
 export const obtenerProductos = async () => {

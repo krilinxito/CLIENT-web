@@ -1,16 +1,21 @@
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider2 } from './context/ThemeContext';
+import { CssBaseline } from '@mui/material';
 import AppRoutes from './AppRoutes';
 import Navbar from './components/Navbar/Navbar';
 
 const App = () => {
   return (
-    <Router>
+    <BrowserRouter>
       <AuthProvider>
-        <Navbar />
-        <AppRoutes />
+        <ThemeProvider2>
+          <CssBaseline />
+          <Navbar />
+          <AppRoutes />
+        </ThemeProvider2>
       </AuthProvider>
-    </Router>
+    </BrowserRouter>
   );
 };
 

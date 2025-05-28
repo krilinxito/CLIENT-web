@@ -3,17 +3,17 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Divider,
   Box
 } from '@mui/material';
 import {
-  Inventory,
   ListAlt,
   Settings,
-  Dashboard
+  History,
+  AccountBalanceWallet
 } from '@mui/icons-material';
 
 const UserSidebar = () => {
@@ -25,19 +25,50 @@ const UserSidebar = () => {
       borderRight: '1px solid rgba(0, 0, 0, 0.12)'
     }}>
       <List>
-        
-        {/* Ejemplo de otros items del menú */}
-      
-        
+        <NavLink to="/usuario/pedidos-activos" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <ListAlt />
+              </ListItemIcon>
+              <ListItemText primary="Pedidos Activos" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/usuario/pedidos-cancelados" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <History />
+              </ListItemIcon>
+              <ListItemText primary="Pedidos Cancelados" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/usuario/resumen-caja" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <AccountBalanceWallet />
+              </ListItemIcon>
+              <ListItemText primary="Resumen de Caja" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
         <Divider sx={{ my: 1 }} />
         
-        <NavLink to="/usuario" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <ListItem button>
-            <ListItemIcon>
-              <Settings />
-            </ListItemIcon>
-            <ListItemText primary="Configuración" />
-          </ListItem>
+        <NavLink to="/usuario/configuracion" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <Settings />
+              </ListItemIcon>
+              <ListItemText primary="Configuración" />
+            </ListItemButton>
+          )}
         </NavLink>
       </List>
     </Box>
