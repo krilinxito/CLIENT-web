@@ -16,9 +16,12 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination
+  TablePagination,
+  Modal,
+  Button
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import {
   LineChart,
   Line,
@@ -33,6 +36,21 @@ import {
 } from 'recharts';
 import { obtenerTodasLasEstadisticas, obtenerIngresosHistoricos } from '../../API/estadisticasApi';
 
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '90%',
+  maxWidth: 1200,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  height: '80vh',
+  display: 'flex',
+  flexDirection: 'column'
+};
+
 const Estadisticas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,6 +59,18 @@ const Estadisticas = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [ingresosHistoricos, setIngresosHistoricos] = useState([]);
   const [totalIngresos, setTotalIngresos] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedChart, setSelectedChart] = useState(null);
+
+  const handleOpenModal = (chartType, title) => {
+    setSelectedChart({ type: chartType, title });
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedChart(null);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -82,6 +112,44 @@ const Estadisticas = () => {
     return isNaN(numero) ? '0.00' : numero.toFixed(2);
   };
 
+  const renderExpandedChart = () => {
+    if (!selectedChart) return null;
+
+    const commonProps = {
+      width: "100%",
+      height: "100%"
+    };
+
+    switch (selectedChart.type) {
+      case 'ingresos':
+        return (
+          <LineChart data={stats.ingresos} {...commonProps}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="fecha" />
+            <YAxis />
+            <RechartsTooltip />
+            <Legend />
+            <Line type="monotone" dataKey="total" stroke="#8884d8" name="Total ($)" strokeWidth={2} />
+            <Line type="monotone" dataKey="total_pedidos" stroke="#82ca9d" name="Cantidad de Pedidos" strokeWidth={2} />
+          </LineChart>
+        );
+      case 'ventasHora':
+        return (
+          <BarChart data={stats.ventasPorHora} {...commonProps}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="hora" />
+            <YAxis />
+            <RechartsTooltip />
+            <Legend />
+            <Bar dataKey="total_ventas" fill="#8884d8" name="Ventas ($)" />
+            <Bar dataKey="total_pedidos" fill="#82ca9d" name="Cantidad de Pedidos" />
+          </BarChart>
+        );
+      default:
+        return null;
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -116,12 +184,40 @@ const Estadisticas = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Ingresos Semanales */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Ingresos Semanales
-            </Typography>
+        {/* Resumen General - Primera fila */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Resumen Semanal
+              </Typography>
+              {stats.comparativaSemanal?.map((periodo) => (
+                <Box key={periodo.periodo} sx={{ mb: 2 }}>
+                  <Typography variant="subtitle1" color="primary">
+                    {periodo.periodo}
+                  </Typography>
+                  <Typography>
+                    Pedidos: {periodo.total_pedidos}
+                  </Typography>
+                  <Typography>
+                    Ventas: ${formatMonto(periodo.total_ventas)}
+                  </Typography>
+                </Box>
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 2, height: '100%' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                Ingresos Semanales
+              </Typography>
+              <IconButton onClick={() => handleOpenModal('ingresos', 'Ingresos Semanales')}>
+                <FullscreenIcon />
+              </IconButton>
+            </Box>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={stats.ingresos}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -129,33 +225,21 @@ const Estadisticas = () => {
                 <YAxis />
                 <RechartsTooltip />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="total" 
-                  stroke="#8884d8" 
-                  name="Total ($)" 
-                  strokeWidth={2}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="total_pedidos" 
-                  stroke="#82ca9d" 
-                  name="Cantidad de Pedidos"
-                  strokeWidth={2}
-                />
+                <Line type="monotone" dataKey="total" stroke="#8884d8" name="Total ($)" strokeWidth={2} />
+                <Line type="monotone" dataKey="total_pedidos" stroke="#82ca9d" name="Cantidad de Pedidos" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </Paper>
         </Grid>
 
-        {/* Productos Más Vendidos */}
+        {/* Productos y Ventas por Hora - Segunda fila */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Productos Más Vendidos
             </Typography>
-            <TableContainer>
-              <Table>
+            <TableContainer sx={{ maxHeight: 400 }}>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell>Producto</TableCell>
@@ -171,83 +255,32 @@ const Estadisticas = () => {
                       <TableCell align="right">${formatMonto(producto.ingresos_total)}</TableCell>
                     </TableRow>
                   ))}
-                  {stats.productosMasVendidos?.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={3} align="center">
-                        No hay datos disponibles
-                      </TableCell>
-                    </TableRow>
-                  )}
                 </TableBody>
               </Table>
             </TableContainer>
           </Paper>
         </Grid>
 
-        {/* Comparativa Semanal */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Comparativa Semanal
-            </Typography>
-            <Grid container spacing={2}>
-              {stats.comparativaSemanal?.map((periodo) => (
-                <Grid item xs={12} key={periodo.periodo}>
-                  <Card>
-                    <CardContent>
-                      <Typography variant="h6" color="primary" gutterBottom>
-                        {periodo.periodo}
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <Typography variant="body2" color="text.secondary">
-                            Total Pedidos
-                          </Typography>
-                          <Typography variant="h6">
-                            {periodo.total_pedidos}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="body2" color="text.secondary">
-                            Total Ventas
-                          </Typography>
-                          <Typography variant="h6">
-                            ${formatMonto(periodo.total_ventas)}
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Paper>
-        </Grid>
-
-        {/* Ventas por Hora */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Ventas por Hora
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                Ventas por Hora
+              </Typography>
+              <IconButton onClick={() => handleOpenModal('ventasHora', 'Ventas por Hora')}>
+                <FullscreenIcon />
+              </IconButton>
+            </Box>
             {stats.ventasPorHora?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={stats.ventasPorHora}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="hora" />
                   <YAxis />
                   <RechartsTooltip />
                   <Legend />
-                  <Bar 
-                    dataKey="total_ventas" 
-                    fill="#8884d8" 
-                    name="Ventas ($)"
-                  />
-                  <Bar 
-                    dataKey="total_pedidos" 
-                    fill="#82ca9d" 
-                    name="Cantidad de Pedidos"
-                  />
+                  <Bar dataKey="total_ventas" fill="#8884d8" name="Ventas ($)" />
+                  <Bar dataKey="total_pedidos" fill="#82ca9d" name="Cantidad de Pedidos" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -260,9 +293,9 @@ const Estadisticas = () => {
           </Paper>
         </Grid>
 
-        {/* Tabla de Ingresos Históricos */}
+        {/* Historial de Ingresos - Tercera fila */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, mt: 3 }}>
+          <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Historial de Ingresos
             </Typography>
@@ -293,13 +326,6 @@ const Estadisticas = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {ingresosHistoricos.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} align="center">
-                        No hay datos disponibles
-                      </TableCell>
-                    </TableRow>
-                  )}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -319,6 +345,26 @@ const Estadisticas = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Modal para gráficos expandidos */}
+      <Modal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-chart"
+        aria-describedby="modal-chart-description"
+      >
+        <Box sx={modalStyle}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">{selectedChart?.title}</Typography>
+            <Button onClick={handleCloseModal}>Cerrar</Button>
+          </Box>
+          <Box sx={{ flexGrow: 1 }}>
+            <ResponsiveContainer>
+              {renderExpandedChart()}
+            </ResponsiveContainer>
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 };
