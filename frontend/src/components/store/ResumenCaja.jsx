@@ -133,72 +133,26 @@ const ResumenCaja = () => {
   };
 
   const calcularResumen = (pagos, pedidos) => {
-    console.log('Datos recibidos en calcularResumen:', {
-      pagos: pagos.map(p => ({
-        id: p.id,
-        id_pedido: p.id_pedido,
-        monto: p.monto,
-        metodo: p.metodo
-      })),
-      pedidos: pedidos.map(p => ({
-        id: p.id,
-        fecha: p.fecha,
-        estado: p.estado,
-        esHoy: esDelDiaActual(p.fecha)
-      }))
-    });
+    // Crear un mapa de pedidos para búsqueda más eficiente
+    const pedidosMap = new Map(pedidos.map(pedido => [pedido.id, pedido]));
 
     // Filtrar pagos según el estado seleccionado y la fecha local
     const pagosFiltrados = pagos.filter(pago => {
-      const pedido = pedidos.find(p => p.id === pago.id_pedido);
-      const esHoy = pedido && esDelDiaActual(pedido.fecha);
-      const esCancelado = pedido && pedido.estado === 'cancelado';
+      const idPedido = pago.id_pedido || pago.idPedido;
+      // Buscar el pedido correspondiente usando el mapa
+      const pedido = pedidosMap.get(idPedido);
+      
+      if (!pedido) return false;
 
-      console.log('Evaluando pago:', {
-        idPago: pago.id,
-        idPedido: pago.id_pedido,
-        monto: pago.monto,
-        metodo: pago.metodo,
-        pedidoEncontrado: !!pedido,
-        pedidoInfo: pedido ? {
-          id: pedido.id,
-          fecha: pedido.fecha,
-          estado: pedido.estado,
-          esHoy
-        } : null,
-        esHoy,
-        esCancelado,
-        seIncluye: mostrarSoloCancelados ? (esHoy && esCancelado) : (esHoy && !esCancelado)
-      });
+      const esHoy = esDelDiaActual(pedido.fecha);
+      const esCancelado = pedido.estado === 'cancelado';
 
-      // Si mostrarSoloCancelados es true, solo incluir pagos de pedidos cancelados
-      // Si mostrarSoloCancelados es false, solo incluir pagos de pedidos NO cancelados
-      return pedido && esHoy && (mostrarSoloCancelados ? esCancelado : !esCancelado);
-    });
-
-    console.log('Pagos filtrados finales:', {
-      total: pagosFiltrados.length,
-      pagos: pagosFiltrados.map(p => ({
-        id: p.id,
-        id_pedido: p.id_pedido,
-        monto: p.monto,
-        metodo: p.metodo
-      }))
+      return esHoy && (mostrarSoloCancelados ? esCancelado : !esCancelado);
     });
 
     // Calcular totales por método
     const totales = pagosFiltrados.reduce((acc, pago) => {
       const monto = Number(pago.monto) || 0;
-      console.log('Sumando pago:', {
-        id: pago.id,
-        monto,
-        metodo: pago.metodo,
-        acumuladoAntes: { ...acc },
-        acumuladoDespues: {
-          totalDia: acc.totalDia + monto,
-          [pago.metodo.toLowerCase()]: acc[`total${pago.metodo.charAt(0).toUpperCase() + pago.metodo.slice(1)}`] + monto
-        }
-      });
 
       switch (pago.metodo.toLowerCase()) {
         case 'efectivo':
@@ -215,6 +169,7 @@ const ResumenCaja = () => {
           break;
       }
       acc.totalDia += monto;
+
       return acc;
     }, {
       totalDia: 0,
@@ -225,7 +180,6 @@ const ResumenCaja = () => {
       fecha: new Date().toISOString()
     });
 
-    console.log('Totales calculados:', totales);
     setResumen(totales);
   };
 
@@ -241,31 +195,15 @@ const ResumenCaja = () => {
         obtenerResumenDeCaja(),
         obtenerPedidosDelDia()
       ]);
-
-      console.log('Datos recibidos del backend:', {
-        resumenData,
-        pedidosResponse
-      });
       
       // Extraer los pedidos de la estructura anidada
       const pedidos = pedidosResponse?.data?.data || [];
       
       // Filtrar pedidos del día actual en hora local
-      const pedidosDelDia = pedidos.filter(pedido => {
-        const esHoy = esDelDiaActual(pedido.fecha);
-        console.log('Evaluando pedido:', {
-          id: pedido.id,
-          fecha: pedido.fecha,
-          fechaLocal: new Date(pedido.fecha).toLocaleString('es-BO', { timeZone: 'America/La_Paz' }),
-          estado: pedido.estado,
-          esHoy
-        });
-        return esHoy;
-      });
+      const pedidosDelDia = pedidos.filter(pedido => esDelDiaActual(pedido.fecha));
 
       // Si no hay array de pagos, usar los totales directamente
       if (!Array.isArray(resumenData.pagos)) {
-        console.log('Usando totales del backend directamente');
         setResumen({
           totalDia: Number(resumenData.totalDia) || 0,
           totalEfectivo: Number(resumenData.totalEfectivo) || 0,
@@ -282,28 +220,6 @@ const ResumenCaja = () => {
         });
         calcularResumen(resumenData.pagos, pedidosDelDia);
       }
-
-      // Guardar información de depuración
-      setDebugInfo({
-        fechaConsulta: new Date().toISOString(),
-        zonaHoraria: {
-          fechaLocal: obtenerFechaLaPaz(),
-          fechaUTC: new Date().toISOString(),
-          pedidosHoy: pedidosDelDia.map(p => ({
-            id: p.id,
-            fecha: p.fecha,
-            fechaLocal: new Date(p.fecha).toLocaleString('es-BO', { timeZone: 'America/La_Paz' }),
-            estado: p.estado
-          }))
-        },
-        datosRecibidos: {
-          resumen: resumenData,
-          pedidosOriginales: pedidos,
-          pedidosDelDia,
-          totalPedidosOriginales: pedidos.length,
-          totalPedidosFiltrados: pedidosDelDia.length
-        }
-      });
 
       // Cargar último arqueo
       try {
@@ -456,15 +372,6 @@ const ResumenCaja = () => {
         </Alert>
       )}
 
-      {debugInfo && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          <Typography variant="subtitle2">Información de depuración:</Typography>
-          <pre style={{ whiteSpace: 'pre-wrap' }}>
-            {JSON.stringify(debugInfo, null, 2)}
-          </pre>
-        </Alert>
-      )}
-
       {!loading && !error && (
         <>
           <Card sx={{ mb: 3, bgcolor: 'primary.main', color: 'white' }}>
@@ -479,7 +386,7 @@ const ResumenCaja = () => {
           </Card>
 
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid xs={12} sm={6} md={3}>
               <MetodoCard
                 titulo={`Efectivo${mostrarSoloCancelados ? ' Cancelado' : ''}`}
                 icono={<MoneyIcon sx={{ fontSize: 30, color: 'success.main' }} />}
@@ -487,7 +394,7 @@ const ResumenCaja = () => {
                 color="success.main"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid xs={12} sm={6} md={3}>
               <MetodoCard
                 titulo={`Tarjeta${mostrarSoloCancelados ? ' Cancelado' : ''}`}
                 icono={<CreditCardIcon sx={{ fontSize: 30, color: 'info.main' }} />}
@@ -495,7 +402,7 @@ const ResumenCaja = () => {
                 color="info.main"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid xs={12} sm={6} md={3}>
               <MetodoCard
                 titulo={`QR${mostrarSoloCancelados ? ' Cancelado' : ''}`}
                 icono={<QrCodeIcon sx={{ fontSize: 30, color: 'secondary.main' }} />}
@@ -503,7 +410,7 @@ const ResumenCaja = () => {
                 color="secondary.main"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid xs={12} sm={6} md={3}>
               <MetodoCard
                 titulo={`Online${mostrarSoloCancelados ? ' Cancelado' : ''}`}
                 icono={<OnlinePaymentIcon sx={{ fontSize: 30, color: 'warning.main' }} />}
@@ -519,7 +426,7 @@ const ResumenCaja = () => {
           <Divider sx={{ mb: 3 }} />
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
+            <Grid xs={12} md={8}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -527,7 +434,7 @@ const ResumenCaja = () => {
                   </Typography>
                   <Grid container spacing={2}>
                     {DENOMINACIONES.map((den) => (
-                      <Grid item xs={12} sm={6} md={4} key={den.valor}>
+                      <Grid xs={12} sm={6} md={4} key={den.valor}>
                         <TextField
                           fullWidth
                           label={`${den.tipo} de $${den.valor}`}
@@ -545,7 +452,7 @@ const ResumenCaja = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid xs={12} md={4}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>

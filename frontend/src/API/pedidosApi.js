@@ -74,12 +74,10 @@ export const obtenerTodosLosPedidos = async (pagina = 1, limite = 10, filtros = 
 
     // Agregar filtros si existen y tienen valor
     if (filtros.fechaInicio) {
-      const fecha = new Date(filtros.fechaInicio);
-      params.append('fechaInicio', fecha.toISOString().split('T')[0]);
+      params.append('fechaInicio', filtros.fechaInicio);
     }
     if (filtros.fechaFin) {
-      const fecha = new Date(filtros.fechaFin);
-      params.append('fechaFin', fecha.toISOString().split('T')[0]);
+      params.append('fechaFin', filtros.fechaFin);
     }
     if (filtros.estado && filtros.estado.trim() !== '') {
       params.append('estado', filtros.estado.trim());

@@ -108,14 +108,102 @@ const PedidosCancelados = () => {
     };
   }, [fetchPedidos]);
 
-  const handleViewProducts = (order) => {
-    setSelectedOrder(order);
-    setProductosModalOpen(true);
+  const handleViewProducts = async (order) => {
+    try {
+      const productosRes = await contieneApi.obtenerProductosDePedido(order.id);
+      const productos = productosRes?.data?.productos || [];
+      
+      if (!Array.isArray(productos)) {
+        console.error('Productos no es un array:', productos);
+        return;
+      }
+
+      setSelectedOrder({
+        ...order,
+        productos
+      });
+      setProductosModalOpen(true);
+    } catch (error) {
+      console.error('Error al obtener productos:', error);
+    }
   };
 
-  const handleViewPayments = (order) => {
-    setSelectedOrder(order);
-    setPagosModalOpen(true);
+  const handleViewPayments = async (order) => {
+    try {
+      const [productosRes, pagosRes] = await Promise.all([
+        contieneApi.obtenerProductosDePedido(order.id),
+        pagoApi.obtenerPagosDePedido(order.id)
+      ]);
+
+      const productos = productosRes?.data?.productos || [];
+      let pagos = pagosRes?.data || [];
+      
+      // Asegurarnos de que pagos sea un array
+      if (!Array.isArray(pagos)) {
+        console.error('Pagos no es un array:', pagos);
+        pagos = [];
+      }
+
+      // Normalizar los IDs de los pagos
+      pagos = pagos.map(pago => ({
+        ...pago,
+        id_pedido: pago.id_pedido || pago.idPedido,
+        idPedido: pago.id_pedido || pago.idPedido
+      }));
+
+      // Filtrar pagos que corresponden a este pedido
+      pagos = pagos.filter(pago => {
+        const pagoId = pago.id_pedido || pago.idPedido;
+        return pagoId === order.id;
+      });
+
+      // Calcular el total del pedido
+      const total = productos.reduce((sum, p) => {
+        if (p.anulado) return sum;
+        return sum + (Number(p.precio || 0) * Number(p.cantidad || 0));
+      }, 0);
+
+      // Calcular el total pagado y cambios
+      const pagosConCambio = pagos.map(pago => {
+        const montoEntregado = Number(pago.monto_entregado || pago.montoEntregado || 0);
+        const monto = Number(pago.monto || 0);
+        
+        if (pago.metodo === 'efectivo' && montoEntregado > monto) {
+          return {
+            ...pago,
+            monto_entregado: montoEntregado,
+            montoEntregado: montoEntregado,
+            cambio: montoEntregado - monto
+          };
+        }
+        return {
+          ...pago,
+          monto_entregado: montoEntregado,
+          montoEntregado: montoEntregado
+        };
+      });
+
+      const totalPagado = pagosConCambio.reduce((sum, p) => sum + Number(p.monto || 0), 0);
+
+      console.log('Pagos encontrados:', {
+        pedidoId: order.id,
+        pagosOriginales: pagosRes?.data,
+        pagosFiltrados: pagos,
+        pagosConCambio,
+        total,
+        totalPagado
+      });
+
+      setSelectedOrder({
+        ...order,
+        pagos: pagosConCambio,
+        total,
+        totalPagado
+      });
+      setPagosModalOpen(true);
+    } catch (error) {
+      console.error('Error al obtener pagos:', error);
+    }
   };
 
   const formatearFecha = (fecha) => {
@@ -160,6 +248,7 @@ const PedidosCancelados = () => {
                 <TableCell>Usuario</TableCell>
                 <TableCell>Productos</TableCell>
                 <TableCell align="right">Total</TableCell>
+                <TableCell align="center">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -170,17 +259,22 @@ const PedidosCancelados = () => {
                   <TableCell>{pedido.nombre}</TableCell>
                   <TableCell>{pedido.nombre_usuario}</TableCell>
                   <TableCell>
-                    {pedido.productos?.map((producto, index) => (
-                      <Chip
-                        key={index}
-                        label={`${producto.cantidad}x ${producto.nombre}`}
-                        size="small"
-                        sx={{ m: 0.5 }}
-                      />
-                    ))}
+                    {pedido.productos?.length || 0} productos
                   </TableCell>
                   <TableCell align="right">
                     ${Number(pedido.total || 0).toFixed(2)}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Tooltip title="Ver Productos">
+                      <IconButton onClick={() => handleViewProducts(pedido)} size="small">
+                        <ReceiptIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Ver Pagos">
+                      <IconButton onClick={() => handleViewPayments(pedido)} size="small">
+                        <PaymentIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
@@ -191,36 +285,39 @@ const PedidosCancelados = () => {
 
       {/* Modal de Productos (solo lectura) */}
       {selectedOrder && (
-        <ProductosModal
-          open={productosModalOpen}
-          onClose={() => {
-            setProductosModalOpen(false);
-            setSelectedOrder(null);
-          }}
-          productos={selectedOrder.productos || []}
-          availableProducts={[]}
-          selectedProduct=""
-          setSelectedProduct={() => {}}
-          cantidad={1}
-          setCantidad={() => {}}
-          readOnly={true}
-        />
-      )}
+        <>
+          {productosModalOpen && (
+            <ProductosModal
+              open={productosModalOpen}
+              onClose={() => {
+                setProductosModalOpen(false);
+                setSelectedOrder(null);
+              }}
+              productos={selectedOrder.productos || []}
+              availableProducts={[]}
+              selectedProduct=""
+              setSelectedProduct={() => {}}
+              cantidad={1}
+              setCantidad={() => {}}
+              readOnly={true}
+            />
+          )}
 
-      {/* Modal de Pagos (solo lectura) */}
-      {selectedOrder && (
-        <PagosModal
-          open={pagosModalOpen}
-          onClose={() => {
-            setPagosModalOpen(false);
-            setSelectedOrder(null);
-          }}
-          pagos={selectedOrder.pagos || []}
-          onAddPago={() => {}}
-          totalPedido={selectedOrder.total || 0}
-          totalPagado={selectedOrder.pagado || 0}
-          readOnly={true}
-        />
+          {pagosModalOpen && (
+            <PagosModal
+              open={pagosModalOpen}
+              onClose={() => {
+                setPagosModalOpen(false);
+                setSelectedOrder(null);
+              }}
+              pagos={selectedOrder.pagos || []}
+              onAddPago={() => {}}
+              totalPedido={selectedOrder.total || 0}
+              totalPagado={selectedOrder.totalPagado || 0}
+              readOnly={true}
+            />
+          )}
+        </>
       )}
     </Paper>
   );
