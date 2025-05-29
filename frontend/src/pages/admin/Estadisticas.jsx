@@ -188,7 +188,7 @@ const Estadisticas = () => {
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom>
                 Resumen Semanal
               </Typography>
               {stats.comparativaSemanal?.map((periodo) => (
@@ -212,8 +212,8 @@ const Estadisticas = () => {
           <Paper sx={{ p: 2, height: '100%' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6">
-                Ingresos Semanales
-              </Typography>
+              Ingresos Semanales
+            </Typography>
               <IconButton onClick={() => handleOpenModal('ingresos', 'Ingresos Semanales')}>
                 <FullscreenIcon />
               </IconButton>
@@ -264,9 +264,9 @@ const Estadisticas = () => {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">
-                Ventas por Hora
-              </Typography>
+                          <Typography variant="h6">
+              Ventas por Hora
+            </Typography>
               <IconButton onClick={() => handleOpenModal('ventasHora', 'Ventas por Hora')}>
                 <FullscreenIcon />
               </IconButton>

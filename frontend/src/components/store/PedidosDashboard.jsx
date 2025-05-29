@@ -24,7 +24,8 @@ import {
   Snackbar,
   Chip,
   Box,
-  Divider
+  Divider,
+  Autocomplete
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
@@ -49,7 +50,7 @@ const PedidosDashboard = () => {
   const [newOrderName, setNewOrderName] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [cantidad, setCantidad] = useState(1);
   const [payment, setPayment] = useState({ monto: 0, metodo: 'efectivo' });
   const [loading, setLoading] = useState(false);
@@ -237,7 +238,7 @@ const PedidosDashboard = () => {
       }
 
       // Obtener la información del producto seleccionado
-      const selectedProductInfo = products.find(p => p.id === selectedProduct);
+      const selectedProductInfo = products.find(p => p.id === selectedProduct.id);
       if (!selectedProductInfo) {
         throw new Error('Producto no encontrado');
       }
@@ -246,14 +247,14 @@ const PedidosDashboard = () => {
       
       console.log('Agregando producto:', {
         id_pedido: orderId,
-        id_producto: selectedProduct,
+        id_producto: selectedProduct.id,
         cantidad: cantidadNum
       });
 
       // Agregar el producto al pedido
       const response = await contieneApi.agregarProductoAPedido({
         id_pedido: orderId,
-        id_producto: selectedProduct,
+        id_producto: selectedProduct.id,
         cantidad: cantidadNum
       });
 
@@ -264,7 +265,7 @@ const PedidosDashboard = () => {
       }
 
       // Limpiar el formulario
-      setSelectedProduct('');
+      setSelectedProduct(null);
       setCantidad(1);
       
       showSuccess('Producto agregado exitosamente');
@@ -510,23 +511,115 @@ const PedidosDashboard = () => {
         </DialogActions>
       </Dialog>
 
-      {selectedOrderId && (
-        <ProductosModal
-          open={productosModalOpen}
-          onClose={() => {
-            setProductosModalOpen(false);
-            setSelectedOrderId(null);
+      <Dialog open={productosModalOpen} onClose={() => setProductosModalOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Productos del Pedido</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 3, mt: 2 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Añadir Producto
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <Autocomplete
+                options={products}
+                getOptionLabel={(option) => `${option.nombre} - $${option.precio}`}
+                value={selectedProduct}
+                onChange={(event, newValue) => {
+                  setSelectedProduct(newValue);
           }}
-          productos={orders.find(o => o.id === selectedOrderId)?.productos || []}
-          onAddProduct={() => handleAddProduct(selectedOrderId)}
-          onCancelProduct={handleCancelProduct}
-          availableProducts={products}
-          selectedProduct={selectedProduct}
-          setSelectedProduct={setSelectedProduct}
-          cantidad={cantidad}
-          setCantidad={setCantidad}
-        />
-      )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Buscar producto"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                )}
+                sx={{ flexGrow: 1 }}
+                isOptionEqualToValue={(option, value) => option.id === value?.id}
+              />
+              <TextField
+                type="number"
+                label="Cantidad"
+                value={cantidad}
+                onChange={(e) => setCantidad(Math.max(1, parseInt(e.target.value) || 1))}
+                InputProps={{ inputProps: { min: 1 } }}
+                size="small"
+                sx={{ width: 100 }}
+              />
+              <Button
+                variant="contained"
+                onClick={() => handleAddProduct(selectedOrderId)}
+                disabled={!selectedProduct}
+                startIcon={<AddIcon />}
+              >
+                Agregar
+              </Button>
+            </Box>
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography variant="subtitle1" gutterBottom>
+            Productos en el Pedido
+          </Typography>
+          
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Producto</TableCell>
+                  <TableCell align="right">Precio</TableCell>
+                  <TableCell align="right">Cantidad</TableCell>
+                  <TableCell align="right">Subtotal</TableCell>
+                  <TableCell align="center">Estado</TableCell>
+                  <TableCell align="center">Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(orders.find(o => o.id === selectedOrderId)?.productos || []).map((producto) => (
+                  <TableRow 
+                    key={producto.id}
+                    sx={producto.anulado ? { backgroundColor: 'rgba(0, 0, 0, 0.04)' } : {}}
+                  >
+                    <TableCell>{producto.nombre}</TableCell>
+                    <TableCell align="right">${producto.precio}</TableCell>
+                    <TableCell align="right">{producto.cantidad}</TableCell>
+                    <TableCell align="right">
+                      ${(safeNumber(producto.precio) * safeNumber(producto.cantidad)).toFixed(2)}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Chip 
+                        label={producto.anulado ? "Anulado" : "Activo"}
+                        color={producto.anulado ? "error" : "success"}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      {!producto.anulado && (
+                        <Tooltip title="Anular producto">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCancelProduct(producto.id)}
+                            color="error"
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setProductosModalOpen(false)}>
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {selectedOrderId && (
         <PagosModal

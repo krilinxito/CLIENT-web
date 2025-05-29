@@ -49,8 +49,18 @@ const PedidosCancelados = () => {
       const pedidosCancelados = response.data.data.filter(pedido => {
         const fechaPedido = new Date(pedido.fecha);
         const hoy = new Date();
-        return pedido.estado === 'cancelado' && 
-               fechaPedido.toDateString() === hoy.toDateString();
+        
+        // Convertir ambas fechas a la zona horaria de La Paz
+        const fechaPedidoLaPaz = new Date(fechaPedido.toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+        const hoyLaPaz = new Date(hoy.toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+        
+        // Comparar solo la fecha (ignorar la hora)
+        const esMismoDia = 
+          fechaPedidoLaPaz.getFullYear() === hoyLaPaz.getFullYear() &&
+          fechaPedidoLaPaz.getMonth() === hoyLaPaz.getMonth() &&
+          fechaPedidoLaPaz.getDate() === hoyLaPaz.getDate();
+        
+        return pedido.estado === 'cancelado' && esMismoDia;
       });
 
       // Obtener detalles adicionales para cada pedido
@@ -122,7 +132,7 @@ const PedidosCancelados = () => {
         ...order,
         productos
       });
-      setProductosModalOpen(true);
+    setProductosModalOpen(true);
     } catch (error) {
       console.error('Error al obtener productos:', error);
     }
@@ -200,14 +210,28 @@ const PedidosCancelados = () => {
         total,
         totalPagado
       });
-      setPagosModalOpen(true);
+    setPagosModalOpen(true);
     } catch (error) {
       console.error('Error al obtener pagos:', error);
     }
   };
 
   const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleString();
+    try {
+      // Convertir a zona horaria de La Paz
+      const fechaLaPaz = new Date(new Date(fecha).toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+      return fechaLaPaz.toLocaleString('es-BO', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      console.error('Error formateando fecha:', error);
+      return 'Fecha inválida';
+    }
   };
 
   return (
@@ -287,35 +311,35 @@ const PedidosCancelados = () => {
       {selectedOrder && (
         <>
           {productosModalOpen && (
-            <ProductosModal
-              open={productosModalOpen}
-              onClose={() => {
-                setProductosModalOpen(false);
-                setSelectedOrder(null);
-              }}
-              productos={selectedOrder.productos || []}
-              availableProducts={[]}
-              selectedProduct=""
-              setSelectedProduct={() => {}}
-              cantidad={1}
-              setCantidad={() => {}}
-              readOnly={true}
-            />
-          )}
+        <ProductosModal
+          open={productosModalOpen}
+          onClose={() => {
+            setProductosModalOpen(false);
+            setSelectedOrder(null);
+          }}
+          productos={selectedOrder.productos || []}
+          availableProducts={[]}
+          selectedProduct=""
+          setSelectedProduct={() => {}}
+          cantidad={1}
+          setCantidad={() => {}}
+          readOnly={true}
+        />
+      )}
 
           {pagosModalOpen && (
-            <PagosModal
-              open={pagosModalOpen}
-              onClose={() => {
-                setPagosModalOpen(false);
-                setSelectedOrder(null);
-              }}
-              pagos={selectedOrder.pagos || []}
-              onAddPago={() => {}}
-              totalPedido={selectedOrder.total || 0}
+        <PagosModal
+          open={pagosModalOpen}
+          onClose={() => {
+            setPagosModalOpen(false);
+            setSelectedOrder(null);
+          }}
+          pagos={selectedOrder.pagos || []}
+          onAddPago={() => {}}
+          totalPedido={selectedOrder.total || 0}
               totalPagado={selectedOrder.totalPagado || 0}
-              readOnly={true}
-            />
+          readOnly={true}
+        />
           )}
         </>
       )}

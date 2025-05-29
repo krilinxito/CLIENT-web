@@ -69,8 +69,9 @@ const ResumenCaja = () => {
   // Función para formatear fecha en formato La Paz
   const formatearFecha = (fecha) => {
     try {
-      return new Date(fecha).toLocaleString('es-BO', {
-        timeZone: 'America/La_Paz',
+      // Convertir a zona horaria de La Paz
+      const fechaLaPaz = new Date(new Date(fecha).toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+      return fechaLaPaz.toLocaleString('es-BO', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -87,17 +88,15 @@ const ResumenCaja = () => {
   // Función para obtener solo la fecha (sin hora) en La Paz
   const obtenerFechaLaPaz = () => {
     const fecha = new Date();
-    const opcionesFecha = { 
-      timeZone: 'America/La_Paz',
+    // Convertir a zona horaria de La Paz
+    const fechaLaPaz = new Date(fecha.toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+    
+    try {
+      return fechaLaPaz.toLocaleString('es-BO', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
-    };
-    
-    try {
-      const fechaFormateada = fecha.toLocaleString('es-BO', opcionesFecha);
-      console.log('Fecha La Paz generada:', fechaFormateada);
-      return fechaFormateada;
+      });
     } catch (error) {
       console.error('Error generando fecha La Paz:', error);
       return fecha.toLocaleDateString('es-BO');
@@ -107,25 +106,12 @@ const ResumenCaja = () => {
   // Función para verificar si una fecha UTC está en el día actual
   const esDelDiaActual = (fechaUTC) => {
     try {
-      // Convertir la fecha UTC a la zona horaria de La Paz
-      const fechaPedido = new Date(fechaUTC).toLocaleString('es-BO', { 
-        timeZone: 'America/La_Paz',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
+      const fechaPedidoLaPaz = new Date(new Date(fechaUTC).toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+      const fechaHoyLaPaz = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
       
-      const fechaHoy = obtenerFechaLaPaz();
-
-      // Para depuración
-      console.log('Comparando fechas:', {
-        fechaUTC,
-        fechaPedido,
-        fechaHoy,
-        sonIguales: fechaPedido === fechaHoy
-      });
-
-      return fechaPedido === fechaHoy;
+      return fechaPedidoLaPaz.getFullYear() === fechaHoyLaPaz.getFullYear() &&
+             fechaPedidoLaPaz.getMonth() === fechaHoyLaPaz.getMonth() &&
+             fechaPedidoLaPaz.getDate() === fechaHoyLaPaz.getDate();
     } catch (error) {
       console.error('Error comparando fechas:', error);
       return false;
