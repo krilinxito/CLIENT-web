@@ -4,7 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext(null);
 
-const TOKEN_TIMEOUT = 2 * 60 * 60 * 1000; // 2 horas en milisegundos
+const TOKEN_TIMEOUT = 4 * 60 * 60 * 1000; // 2 horas en milisegundos
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
