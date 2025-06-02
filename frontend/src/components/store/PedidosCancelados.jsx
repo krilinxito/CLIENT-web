@@ -14,14 +14,19 @@ import {
   Alert,
   Chip,
   IconButton,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogContent,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import PaymentIcon from '@mui/icons-material/Payment';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { PDFViewer } from '@react-pdf/renderer';
 import { obtenerPedidosDelDia } from '../../API/pedidosApi';
 import ProductosModal from './ProductosModal';
 import PagosModal from './PagosModal';
+import PedidoTicketPDF from '../pdf/PedidoTicketPDF';
 import contieneApi from '../../API/contieneApi';
 import { pagoApi } from '../../API/pagoApi';
 
@@ -32,6 +37,8 @@ const PedidosCancelados = () => {
   const [productosModalOpen, setProductosModalOpen] = useState(false);
   const [pagosModalOpen, setPagosModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [selectedPedidoPDF, setSelectedPedidoPDF] = useState(null);
 
   const fetchPedidos = useCallback(async () => {
     if (loading) return;
@@ -47,20 +54,27 @@ const PedidosCancelados = () => {
 
       // Filtrar solo los pedidos cancelados del día
       const pedidosCancelados = response.data.data.filter(pedido => {
-        const fechaPedido = new Date(pedido.fecha);
-        const hoy = new Date();
-        
-        // Convertir ambas fechas a la zona horaria de La Paz
-        const fechaPedidoLaPaz = new Date(fechaPedido.toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
-        const hoyLaPaz = new Date(hoy.toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
-        
-        // Comparar solo la fecha (ignorar la hora)
-        const esMismoDia = 
-          fechaPedidoLaPaz.getFullYear() === hoyLaPaz.getFullYear() &&
-          fechaPedidoLaPaz.getMonth() === hoyLaPaz.getMonth() &&
-          fechaPedidoLaPaz.getDate() === hoyLaPaz.getDate();
-        
-        return pedido.estado === 'cancelado' && esMismoDia;
+        try {
+          // Convertir la fecha del pedido a la zona horaria de La Paz
+          const fechaPedido = new Date(pedido.fecha);
+          fechaPedido.setHours(fechaPedido.getHours() - 4); // Ajuste manual a UTC-4 (La Paz)
+          
+          // Obtener la fecha actual en La Paz
+          const ahora = new Date();
+          const hoyLaPaz = new Date(ahora);
+          hoyLaPaz.setHours(ahora.getHours() - 4); // Ajuste manual a UTC-4 (La Paz)
+          
+          // Comparar solo la fecha (ignorar la hora)
+          const esMismoDia = 
+            fechaPedido.getFullYear() === hoyLaPaz.getFullYear() &&
+            fechaPedido.getMonth() === hoyLaPaz.getMonth() &&
+            fechaPedido.getDate() === hoyLaPaz.getDate();
+          
+          return pedido.estado === 'cancelado' && esMismoDia;
+        } catch (error) {
+          console.error('Error procesando fecha del pedido:', error);
+          return false;
+        }
       });
 
       // Obtener detalles adicionales para cada pedido
@@ -100,7 +114,7 @@ const PedidosCancelados = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loading]);
 
   useEffect(() => {
     let mounted = true;
@@ -216,6 +230,11 @@ const PedidosCancelados = () => {
     }
   };
 
+  const handleViewPDF = (pedido) => {
+    setSelectedPedidoPDF(pedido);
+    setPdfPreviewOpen(true);
+  };
+
   const formatearFecha = (fecha) => {
     try {
       // Convertir a zona horaria de La Paz
@@ -299,6 +318,11 @@ const PedidosCancelados = () => {
                         <PaymentIcon />
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title="Ver Ticket">
+                      <IconButton onClick={() => handleViewPDF(pedido)} size="small">
+                        <PictureAsPdfIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
@@ -343,6 +367,30 @@ const PedidosCancelados = () => {
           )}
         </>
       )}
+
+      <Dialog
+        open={pdfPreviewOpen}
+        onClose={() => {
+          setPdfPreviewOpen(false);
+          setSelectedPedidoPDF(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '90vh',
+            maxWidth: '300px !important'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 1 }}>
+          {selectedPedidoPDF && (
+            <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+              <PedidoTicketPDF pedido={selectedPedidoPDF} />
+            </PDFViewer>
+          )}
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 };

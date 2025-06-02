@@ -112,9 +112,16 @@ const ResumenCaja = () => {
   // Función para verificar si una fecha UTC está en el día actual
   const esDelDiaActual = (fechaUTC) => {
     try {
-      const fechaPedidoLaPaz = new Date(new Date(fechaUTC).toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
-      const fechaHoyLaPaz = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/La_Paz' }));
+      // Convertir la fecha del pedido a la zona horaria de La Paz
+      const fechaPedidoLaPaz = new Date(fechaUTC);
+      fechaPedidoLaPaz.setHours(fechaPedidoLaPaz.getHours() - 4); // Ajuste manual a UTC-4 (La Paz)
       
+      // Obtener la fecha actual en La Paz
+      const ahora = new Date();
+      const fechaHoyLaPaz = new Date(ahora);
+      fechaHoyLaPaz.setHours(ahora.getHours() - 4); // Ajuste manual a UTC-4 (La Paz)
+      
+      // Comparar solo las fechas (ignorando la hora)
       return fechaPedidoLaPaz.getFullYear() === fechaHoyLaPaz.getFullYear() &&
              fechaPedidoLaPaz.getMonth() === fechaHoyLaPaz.getMonth() &&
              fechaPedidoLaPaz.getDate() === fechaHoyLaPaz.getDate();
