@@ -15,7 +15,9 @@ import {
   Divider,
   Snackbar,
   FormControlLabel,
-  Switch
+  Switch,
+  Dialog,
+  DialogContent,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import MoneyIcon from '@mui/icons-material/Money';
@@ -23,9 +25,12 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import QrCodeIcon from '@mui/icons-material/QrCode';
 import OnlinePaymentIcon from '@mui/icons-material/Language';
 import SaveIcon from '@mui/icons-material/Save';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { PDFViewer } from '@react-pdf/renderer';
 import { obtenerResumenDeCaja } from '../../API/cajaApi';
 import { obtenerPedidosDelDia } from '../../API/pedidosApi';
 import { crearArqueo, obtenerUltimoArqueo } from '../../API/arqueoApi';
+import ResumenCajaPDF from '../pdf/ResumenCajaPDF';
 
 const DENOMINACIONES = [
   { valor: 200, tipo: 'Billete' },
@@ -65,6 +70,7 @@ const ResumenCaja = () => {
   const [cajaChica, setCajaChica] = useState(0);
   const [diferencia, setDiferencia] = useState(null);
   const [observaciones, setObservaciones] = useState('');
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
 
   // Función para formatear fecha en formato La Paz
   const formatearFecha = (fecha) => {
@@ -337,13 +343,18 @@ const ResumenCaja = () => {
             label="Mostrar solo pedidos cancelados"
           />
         </Box>
-        <Tooltip title="Actualizar datos">
-          <span>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Ver PDF">
+            <IconButton onClick={() => setPdfPreviewOpen(true)} disabled={loading}>
+              <PictureAsPdfIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Actualizar datos">
             <IconButton onClick={fetchData} disabled={loading}>
               <RefreshIcon />
             </IconButton>
-          </span>
-        </Tooltip>
+          </Tooltip>
+        </Box>
       </Box>
 
       {loading && (
@@ -519,6 +530,24 @@ const ResumenCaja = () => {
           {success}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={pdfPreviewOpen}
+        onClose={() => setPdfPreviewOpen(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogContent sx={{ height: '90vh', p: 1 }}>
+          <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+            <ResumenCajaPDF
+              resumen={resumen}
+              conteo={conteo}
+              cajaChica={cajaChica}
+              diferencia={diferencia}
+            />
+          </PDFViewer>
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 };
