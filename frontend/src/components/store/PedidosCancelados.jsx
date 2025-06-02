@@ -29,6 +29,10 @@ import PagosModal from './PagosModal';
 import PedidoTicketPDF from './PedidoTicketPDF';
 import contieneApi from '../../API/contieneApi';
 import { pagoApi } from '../../API/pagoApi';
+import MoneyIcon from '@mui/icons-material/Money';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import QrCodeIcon from '@mui/icons-material/QrCode';
+import OnlinePaymentIcon from '@mui/icons-material/OnlinePayment';
 
 const PedidosCancelados = () => {
   const [pedidos, setPedidos] = useState([]);
@@ -39,6 +43,30 @@ const PedidosCancelados = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const [selectedPedidoPDF, setSelectedPedidoPDF] = useState(null);
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' o 'desc'
+
+  const getPaymentMethodColor = (metodo) => {
+    switch (metodo.toLowerCase()) {
+      case 'efectivo':
+        return 'success';
+      case 'tarjeta':
+        return 'info';
+      case 'qr':
+        return 'secondary';
+      case 'online':
+        return 'warning';
+      default:
+        return 'default';
+    }
+  };
+
+  const ordenarPedidos = (pedidosArray) => {
+    return [...pedidosArray].sort((a, b) => {
+      const fechaA = new Date(a.fecha);
+      const fechaB = new Date(b.fecha);
+      return sortOrder === 'desc' ? fechaB - fechaA : fechaA - fechaB;
+    });
+  };
 
   const fetchPedidos = useCallback(async () => {
     if (loading) return;
@@ -106,7 +134,9 @@ const PedidosCancelados = () => {
         })
       );
 
-      setPedidos(pedidosConDetalles);
+      // Ordenar los pedidos
+      const pedidosOrdenados = ordenarPedidos(pedidosConDetalles);
+      setPedidos(pedidosOrdenados);
     } catch (error) {
       console.error('Error al obtener pedidos cancelados:', error);
       setError('Error al cargar los pedidos: ' + (error.response?.data?.message || error.message));
@@ -114,7 +144,7 @@ const PedidosCancelados = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sortOrder]);
 
   useEffect(() => {
     fetchPedidos();
@@ -301,6 +331,24 @@ const PedidosCancelados = () => {
                   </TableCell>
                   <TableCell align="right">
                     ${Number(pedido.total || 0).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {pedido.pagos?.map((pago, index) => (
+                        <Chip
+                          key={index}
+                          label={`$${Number(pago.monto).toFixed(2)}`}
+                          color={getPaymentMethodColor(pago.metodo)}
+                          icon={
+                            pago.metodo.toLowerCase() === 'efectivo' ? <MoneyIcon /> :
+                            pago.metodo.toLowerCase() === 'tarjeta' ? <CreditCardIcon /> :
+                            pago.metodo.toLowerCase() === 'qr' ? <QrCodeIcon /> :
+                            <OnlinePaymentIcon />
+                          }
+                          size="small"
+                        />
+                      ))}
+                    </Box>
                   </TableCell>
                   <TableCell align="center">
                     <Tooltip title="Ver Productos">

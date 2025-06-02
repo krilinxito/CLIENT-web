@@ -91,6 +91,28 @@ const PedidoTicketPDF = ({ pedido }) => {
     }
   };
 
+  // Agrupar productos idénticos
+  const agruparProductos = (productos) => {
+    if (!productos || !Array.isArray(productos)) return [];
+    
+    const productosAgrupados = productos.reduce((acc, producto) => {
+      if (producto.anulado) return acc;
+      
+      const key = `${producto.id_producto || producto.idProducto}-${producto.precio}`;
+      if (!acc[key]) {
+        acc[key] = {
+          ...producto,
+          cantidad: Number(producto.cantidad || 0)
+        };
+      } else {
+        acc[key].cantidad += Number(producto.cantidad || 0);
+      }
+      return acc;
+    }, {});
+
+    return Object.values(productosAgrupados);
+  };
+
   // Calcular total
   const calcularTotal = () => {
     if (!pedido.productos || !Array.isArray(pedido.productos)) return 0;
@@ -102,6 +124,9 @@ const PedidoTicketPDF = ({ pedido }) => {
       return sum + (precio * cantidad);
     }, 0);
   };
+
+  // Agrupar los productos antes de renderizar
+  const productosAgrupados = agruparProductos(pedido.productos);
 
   return (
     <Document>
@@ -131,25 +156,23 @@ const PedidoTicketPDF = ({ pedido }) => {
               </View>
             </View>
 
-            {pedido.productos && pedido.productos.map((producto, index) => (
-              !producto.anulado && (
-                <View style={styles.tableRow} key={index}>
-                  <View style={styles.tableCol}>
-                    <Text>{producto.nombre}</Text>
-                  </View>
-                  <View style={styles.tableCol}>
-                    <Text>{producto.cantidad}</Text>
-                  </View>
-                  <View style={styles.tableCol}>
-                    <Text>${Number(producto.precio).toFixed(2)}</Text>
-                  </View>
-                  <View style={styles.tableCol}>
-                    <Text>
-                      ${(Number(producto.precio) * Number(producto.cantidad)).toFixed(2)}
-                    </Text>
-                  </View>
+            {productosAgrupados.map((producto, index) => (
+              <View style={styles.tableRow} key={index}>
+                <View style={styles.tableCol}>
+                  <Text>{producto.nombre}</Text>
                 </View>
-              )
+                <View style={styles.tableCol}>
+                  <Text>{producto.cantidad}</Text>
+                </View>
+                <View style={styles.tableCol}>
+                  <Text>${Number(producto.precio).toFixed(2)}</Text>
+                </View>
+                <View style={styles.tableCol}>
+                  <Text>
+                    ${(Number(producto.precio) * Number(producto.cantidad)).toFixed(2)}
+                  </Text>
+                </View>
+              </View>
             ))}
           </View>
 

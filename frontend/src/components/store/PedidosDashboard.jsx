@@ -52,6 +52,8 @@ const PedidosDashboard = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [newOrderName, setNewOrderName] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -354,6 +356,50 @@ const PedidosDashboard = () => {
     setPdfPreviewOpen(true);
   };
 
+  const agruparProductos = (productos) => {
+    if (!Array.isArray(productos)) return [];
+    
+    const productosAgrupados = productos.reduce((acc, producto) => {
+      if (producto.anulado) return acc;
+      
+      const key = `${producto.id_producto || producto.idProducto}`;
+      if (!acc[key]) {
+        acc[key] = {
+          ...producto,
+          cantidad: Number(producto.cantidad || 0)
+        };
+      } else {
+        acc[key].cantidad += Number(producto.cantidad || 0);
+      }
+      return acc;
+    }, {});
+
+    return Object.values(productosAgrupados);
+  };
+
+  const renderProductosPedido = (productos) => {
+    const productosAgrupados = agruparProductos(productos);
+    return productosAgrupados.map(p => (
+      <Chip 
+        key={p.id}
+        label={`${p.cantidad}x ${p.nombre}`}
+        color={p.anulado ? "default" : "primary"}
+        variant="outlined"
+        sx={p.anulado ? { textDecoration: 'line-through' } : undefined}
+      />
+    ));
+  };
+
+  useEffect(() => {
+    if (!products.length) return;
+    
+    const filtered = products.filter(product => 
+      product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
+
   return (
     <Paper sx={{ p: 3, m: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -425,15 +471,7 @@ const PedidosDashboard = () => {
                     <TableCell>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {order.productos?.map(p => (
-                            <Chip 
-                              key={p.id}
-                              label={`${p.cantidad}x ${p.nombre}`}
-                              color={p.anulado ? "default" : "primary"}
-                              variant="outlined"
-                              sx={p.anulado ? { textDecoration: 'line-through' } : undefined}
-                            />
-                          ))}
+                        {renderProductosPedido(order.productos)}
                         </Box>
                         <Button
                           size="small"
@@ -559,12 +597,18 @@ const PedidosDashboard = () => {
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
               <Autocomplete
-                options={products}
+                options={filteredProducts}
                 getOptionLabel={(option) => `${option.nombre} - $${option.precio}`}
                 value={selectedProduct}
                 onChange={(event, newValue) => {
                   setSelectedProduct(newValue);
-          }}
+                  if (newValue) {
+                    setCantidad(1); // Reset cantidad when new product is selected
+                  }
+                }}
+                onInputChange={(event, newInputValue) => {
+                  setSearchTerm(newInputValue);
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -576,6 +620,7 @@ const PedidosDashboard = () => {
                 )}
                 sx={{ flexGrow: 1 }}
                 isOptionEqualToValue={(option, value) => option.id === value?.id}
+                filterOptions={(x) => x} // Disable built-in filtering
               />
               <TextField
                 type="number"
