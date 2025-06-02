@@ -119,11 +119,13 @@ const PedidoTicketPDF = ({ pedido }) => {
     }
   };
 
+  const esPedidoCancelado = pedido.estado === 'cancelado';
+
   return (
     <Document>
       <Page size={[226.8, 400]} style={styles.page}> {/* 80mm = 226.8pt */}
         <View style={styles.header}>
-          <Text style={styles.title}>PEDIDO CANCELADO</Text>
+          <Text style={styles.title}>{esPedidoCancelado ? 'PEDIDO CANCELADO' : 'CUENTA'}</Text>
           <Text style={styles.subtitle}>Nro. Pedido: {pedido.id}</Text>
           <Text style={styles.subtitle}>Fecha: {formatearFecha(pedido.fecha)}</Text>
           <Text style={styles.subtitle}>Cliente: {pedido.nombre}</Text>
@@ -135,14 +137,16 @@ const PedidoTicketPDF = ({ pedido }) => {
         <View style={styles.section}>
           <Text style={styles.label}>DETALLE DEL PEDIDO:</Text>
           {pedido.productos?.map((producto, index) => (
-            <View key={index} style={styles.productRow}>
-              <Text style={styles.quantity}>{producto.cantidad}x</Text>
-              <Text style={styles.productName}>{producto.nombre}</Text>
-              <Text style={styles.productPrice}>${formatMonto(producto.precio)}</Text>
-              <Text style={styles.subtotal}>
-                ${formatMonto(producto.precio * producto.cantidad)}
-              </Text>
-            </View>
+            !producto.anulado && (
+              <View key={index} style={styles.productRow}>
+                <Text style={styles.quantity}>{producto.cantidad}x</Text>
+                <Text style={styles.productName}>{producto.nombre}</Text>
+                <Text style={styles.productPrice}>${formatMonto(producto.precio)}</Text>
+                <Text style={styles.subtotal}>
+                  ${formatMonto(producto.precio * producto.cantidad)}
+                </Text>
+              </View>
+            )
           ))}
         </View>
 
@@ -162,12 +166,27 @@ const PedidoTicketPDF = ({ pedido }) => {
                 <Text style={styles.value}>${formatMonto(pago.monto)}</Text>
               </View>
             ))}
+            {pedido.pagado < pedido.total && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.label}>PENDIENTE:</Text>
+                <Text style={styles.value}>${formatMonto(pedido.total - pedido.pagado)}</Text>
+              </View>
+            )}
           </View>
         )}
 
         <View style={styles.footer}>
-          <Text>*** PEDIDO CANCELADO ***</Text>
-          <Text>Gracias por su preferencia</Text>
+          {esPedidoCancelado ? (
+            <>
+              <Text>*** PEDIDO CANCELADO ***</Text>
+              <Text>Gracias por su preferencia</Text>
+            </>
+          ) : (
+            <>
+              <Text>Gracias por su preferencia</Text>
+              <Text>Lo esperamos pronto</Text>
+            </>
+          )}
         </View>
       </Page>
     </Document>

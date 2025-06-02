@@ -356,11 +356,11 @@ const ResumenCaja = () => {
               <PictureAsPdfIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Actualizar datos">
+        <Tooltip title="Actualizar datos">
             <IconButton onClick={fetchData} disabled={loading}>
               <RefreshIcon />
             </IconButton>
-          </Tooltip>
+        </Tooltip>
         </Box>
       </Box>
 

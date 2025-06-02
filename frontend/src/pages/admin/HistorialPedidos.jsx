@@ -17,6 +17,8 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogContent,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -26,11 +28,14 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import SearchIcon from '@mui/icons-material/Search';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import PaymentIcon from '@mui/icons-material/Payment';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { obtenerTodosLosPedidos } from '../../API/pedidosApi';
 import ProductosModal from '../../components/store/ProductosModal';
 import PagosModal from '../../components/store/PagosModal';
 import contieneApi from '../../API/contieneApi';
 import { pagoApi } from '../../API/pagoApi';
+import { PDFViewer } from '@react-pdf/renderer';
+import PedidoTicketPDF from '../pdf/PedidoTicketPDF';
 
 const HistorialPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
@@ -52,6 +57,8 @@ const HistorialPedidos = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [allPedidos, setAllPedidos] = useState([]);
   const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [selectedPedidoPDF, setSelectedPedidoPDF] = useState(null);
 
   const estados = ['pendiente', 'completado', 'cancelado', 'pagado'];
 
@@ -298,6 +305,11 @@ const HistorialPedidos = () => {
     }
   };
 
+  const handleViewPDF = (pedido) => {
+    setSelectedPedidoPDF(pedido);
+    setPdfPreviewOpen(true);
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
       <Paper sx={{ p: 3 }}>
@@ -437,6 +449,11 @@ const HistorialPedidos = () => {
                             <PaymentIcon />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Ver Ticket">
+                          <IconButton onClick={() => handleViewPDF(pedido)} size="small">
+                            <PictureAsPdfIcon />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))
@@ -496,6 +513,30 @@ const HistorialPedidos = () => {
             )}
           </>
         )}
+
+        <Dialog
+          open={pdfPreviewOpen}
+          onClose={() => {
+            setPdfPreviewOpen(false);
+            setSelectedPedidoPDF(null);
+          }}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              height: '90vh',
+              maxWidth: '300px !important'
+            }
+          }}
+        >
+          <DialogContent sx={{ p: 1 }}>
+            {selectedPedidoPDF && (
+              <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+                <PedidoTicketPDF pedido={selectedPedidoPDF} />
+              </PDFViewer>
+            )}
+          </DialogContent>
+        </Dialog>
       </Paper>
     </LocalizationProvider>
   );

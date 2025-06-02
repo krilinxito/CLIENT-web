@@ -33,6 +33,11 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import PaymentIcon from '@mui/icons-material/Payment';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import { PDFViewer } from '@react-pdf/renderer';
+import PedidoTicketPDF from '../pdf/PedidoTicketPDF';
 import { useAuth } from '../../context/AuthContext';
 
 // Importaciones corregidas
@@ -60,6 +65,8 @@ const PedidosDashboard = () => {
   const [productosModalOpen, setProductosModalOpen] = useState(false);
   const [pagosModalOpen, setPagosModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [selectedPedidoPDF, setSelectedPedidoPDF] = useState(null);
 
   const safeNumber = (value) => {
     if (value === null || value === undefined) return 0;
@@ -341,6 +348,11 @@ const PedidosDashboard = () => {
     }, 0);
   };
 
+  const handleViewPDF = (pedido) => {
+    setSelectedPedidoPDF(pedido);
+    setPdfPreviewOpen(true);
+  };
+
   return (
     <Paper sx={{ p: 3, m: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -392,6 +404,7 @@ const PedidosDashboard = () => {
                 <TableCell align="right">Total</TableCell>
                 <TableCell align="right">Pagado</TableCell>
                 <TableCell align="right">Pendiente</TableCell>
+                <TableCell align="center">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -478,6 +491,25 @@ const PedidosDashboard = () => {
                       <Typography variant="h6" color={order.pendiente > 0 ? "error.main" : "success.main"}>
                         ${Math.max(0, Number(order.pendiente)).toFixed(2)}
                       </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        <Tooltip title="Ver Productos">
+                          <IconButton onClick={() => handleViewProducts(order)} size="small">
+                            <ReceiptIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Ver Pagos">
+                          <IconButton onClick={() => handleViewPayments(order)} size="small">
+                            <PaymentIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Ver Ticket">
+                          <IconButton onClick={() => handleViewPDF(order)} size="small">
+                            <PictureAsPdfIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 );
@@ -656,6 +688,30 @@ const PedidosDashboard = () => {
           {success}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={pdfPreviewOpen}
+        onClose={() => {
+          setPdfPreviewOpen(false);
+          setSelectedPedidoPDF(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '90vh',
+            maxWidth: '300px !important'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 1 }}>
+          {selectedPedidoPDF && (
+            <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+              <PedidoTicketPDF pedido={selectedPedidoPDF} />
+            </PDFViewer>
+          )}
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 };
