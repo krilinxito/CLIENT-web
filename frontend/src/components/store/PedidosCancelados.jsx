@@ -114,7 +114,7 @@ const PedidosCancelados = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -130,7 +130,7 @@ const PedidosCancelados = () => {
     return () => {
       mounted = false;
     };
-  }, [fetchPedidos]);
+  }, []);
 
   const handleViewProducts = async (order) => {
     try {

@@ -161,6 +161,7 @@ const PedidosDashboard = () => {
         })
       );
 
+      // Establecer los pedidos en el estado
       setOrders(pedidosConDetalles);
       setError(null);
     } catch (error) {
@@ -381,19 +382,19 @@ const PedidosDashboard = () => {
         </Box>
       </Box>
 
-      {loading && (
+      {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
           <CircularProgress />
         </Box>
-      )}
-
-      {!loading && orders.length === 0 && (
+      ) : error ? (
+        <Alert severity="error" sx={{ my: 2 }}>
+          {error}
+        </Alert>
+      ) : orders.length === 0 ? (
         <Alert severity="info" sx={{ my: 2 }}>
           No hay pedidos pendientes
         </Alert>
-      )}
-
-      {!loading && orders.length > 0 && (
+      ) : (
         <TableContainer>
           <Table>
             <TableHead>
@@ -408,112 +409,103 @@ const PedidosDashboard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {orders.map(order => {
-                const total = calculateTotal(order.productos);
-                const paid = calculatePaid(order.pagos);
-                const remaining = total - paid;
-
-                return (
-                  <TableRow key={order.id}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Typography variant="subtitle1">{order.nombre}</Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          Por: {order.nombre_usuario}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {new Date(order.fecha).toLocaleString()}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {order.productos.map(p => (
-                            <Chip 
-                              key={p.id}
-                              label={`${p.cantidad}x ${p.nombre}`}
-                              color={p.anulado ? "default" : "primary"}
-                              variant="outlined"
-                              sx={p.anulado ? { textDecoration: 'line-through' } : undefined}
-                            />
-                          ))}
-                        </Box>
-                        <Button
-                          size="small"
-                          onClick={() => {
-                            setSelectedOrderId(order.id);
-                            setProductosModalOpen(true);
-                          }}
-                        >
-                          Gestionar Productos
-                        </Button>
-                      </Box>
-                    </TableCell>
-
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {order.pagos.map((p, index) => (
-                            <Chip
-                              key={index}
-                              label={`$${Number(p.monto).toFixed(2)} (${p.metodo})`}
-                              color="success"
-                              variant="outlined"
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                        <Button
-                          size="small"
-                          onClick={() => {
-                            setSelectedOrderId(order.id);
-                            setPagosModalOpen(true);
-                          }}
-                        >
-                          Gestionar Pagos
-                        </Button>
-                      </Box>
-                    </TableCell>
-
-                    <TableCell align="right">
-                      <Typography variant="h6">
-                        ${Number(order.total).toFixed(2)}
+              {orders.map(order => (
+                <TableRow key={order.id}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="subtitle1">{order.nombre}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Por: {order.nombre_usuario}
                       </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="h6" color="success.main">
-                        ${Number(order.pagado).toFixed(2)}
+                      <Typography variant="caption" color="textSecondary">
+                        {new Date(order.fecha).toLocaleString()}
                       </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="h6" color={order.pendiente > 0 ? "error.main" : "success.main"}>
-                        ${Math.max(0, Number(order.pendiente)).toFixed(2)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <Tooltip title="Ver Productos">
-                          <IconButton onClick={() => handleViewProducts(order)} size="small">
-                            <ReceiptIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Pagos">
-                          <IconButton onClick={() => handleViewPayments(order)} size="small">
-                            <PaymentIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Ticket">
-                          <IconButton onClick={() => handleViewPDF(order)} size="small">
-                            <PictureAsPdfIcon />
-                          </IconButton>
-                        </Tooltip>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {order.productos?.map(p => (
+                          <Chip 
+                            key={p.id}
+                            label={`${p.cantidad}x ${p.nombre}`}
+                            color={p.anulado ? "default" : "primary"}
+                            variant="outlined"
+                            sx={p.anulado ? { textDecoration: 'line-through' } : undefined}
+                          />
+                        ))}
                       </Box>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          setSelectedOrderId(order.id);
+                          setProductosModalOpen(true);
+                        }}
+                      >
+                        Gestionar Productos
+                      </Button>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {order.pagos?.map((p, index) => (
+                          <Chip
+                            key={index}
+                            label={`$${Number(p.monto).toFixed(2)} (${p.metodo})`}
+                            color="success"
+                            variant="outlined"
+                            size="small"
+                          />
+                        ))}
+                      </Box>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          setSelectedOrderId(order.id);
+                          setPagosModalOpen(true);
+                        }}
+                      >
+                        Gestionar Pagos
+                      </Button>
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="h6">
+                      ${Number(order.total || 0).toFixed(2)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="h6" color="success.main">
+                      ${Number(order.pagado || 0).toFixed(2)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="h6" color={order.pendiente > 0 ? "error.main" : "success.main"}>
+                      ${Math.max(0, Number(order.pendiente || 0)).toFixed(2)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                      <Tooltip title="Ver Productos">
+                        <IconButton onClick={() => handleViewProducts(order)} size="small">
+                          <ReceiptIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Ver Pagos">
+                        <IconButton onClick={() => handleViewPayments(order)} size="small">
+                          <PaymentIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Ver Ticket">
+                        <IconButton onClick={() => handleViewPDF(order)} size="small">
+                          <PictureAsPdfIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
@@ -557,7 +549,7 @@ const PedidosDashboard = () => {
                 value={selectedProduct}
                 onChange={(event, newValue) => {
                   setSelectedProduct(newValue);
-          }}
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
