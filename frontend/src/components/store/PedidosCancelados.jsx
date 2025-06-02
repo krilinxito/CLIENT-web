@@ -32,7 +32,7 @@ import { pagoApi } from '../../API/pagoApi';
 import MoneyIcon from '@mui/icons-material/Money';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import QrCodeIcon from '@mui/icons-material/QrCode';
-import OnlinePaymentIcon from '@mui/icons-material/OnlinePayment';
+import LanguageIcon from '@mui/icons-material/Language';
 
 const PedidosCancelados = () => {
   const [pedidos, setPedidos] = useState([]);
@@ -343,7 +343,7 @@ const PedidosCancelados = () => {
                             pago.metodo.toLowerCase() === 'efectivo' ? <MoneyIcon /> :
                             pago.metodo.toLowerCase() === 'tarjeta' ? <CreditCardIcon /> :
                             pago.metodo.toLowerCase() === 'qr' ? <QrCodeIcon /> :
-                            <OnlinePaymentIcon />
+                            <LanguageIcon />
                           }
                           size="small"
                         />
