@@ -64,7 +64,7 @@ export const editarPedido = async (id, pedidoData) => {
 };
 
 // Obtener todos los pedidos con paginación y filtros
-export const obtenerTodosLosPedidos = async (pagina = 1, limite = 10, filtros = {}) => {
+export const obtenerTodosLosPedidos = async (pagina = 1, limite = 10000, filtros = {}) => {
   try {
     // Crear objeto de parámetros base
     const params = new URLSearchParams({

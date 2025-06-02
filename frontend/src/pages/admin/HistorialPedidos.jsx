@@ -39,12 +39,9 @@ const HistorialPedidos = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
   const [filtros, setFiltros] = useState(() => {
-    // Crear fecha inicial en 2025
-    const fechaInicial = new Date();
-    fechaInicial.setFullYear(2025);
     return {
-      fechaInicio: fechaInicial,
-      fechaFin: fechaInicial,
+      fechaInicio: null,
+      fechaFin: null,
       estado: '',
       usuario: ''
     };
@@ -103,32 +100,30 @@ const HistorialPedidos = () => {
   const aplicarFiltros = (pedidos, filtrosActuales) => {
     let resultados = [...pedidos];
 
-    if (filtrosActuales.fechaInicio || filtrosActuales.fechaFin) {
+    // Solo aplicar filtros de fecha si ambas fechas están presentes
+    if (filtrosActuales.fechaInicio && filtrosActuales.fechaFin) {
       resultados = resultados.filter(pedido => {
-        const fechaPedido = new Date(pedido.fecha);
-        fechaPedido.setHours(0, 0, 0, 0);
-
-        let cumpleFiltros = true;
-
-        if (filtrosActuales.fechaInicio) {
+        try {
+          const fechaPedido = new Date(pedido.fecha);
           const fechaInicio = new Date(filtrosActuales.fechaInicio);
-          fechaInicio.setHours(0, 0, 0, 0);
-          cumpleFiltros = cumpleFiltros && fechaPedido >= fechaInicio;
-        }
-
-        if (filtrosActuales.fechaFin) {
           const fechaFin = new Date(filtrosActuales.fechaFin);
-          fechaFin.setHours(23, 59, 59, 999);
-          cumpleFiltros = cumpleFiltros && fechaPedido <= fechaFin;
-        }
 
-        return cumpleFiltros;
+          // Ajustar las fechas para ignorar las horas
+          fechaPedido.setHours(0, 0, 0, 0);
+          fechaInicio.setHours(0, 0, 0, 0);
+          fechaFin.setHours(23, 59, 59, 999);
+
+          return fechaPedido >= fechaInicio && fechaPedido <= fechaFin;
+        } catch (error) {
+          console.error('Error al filtrar por fecha:', error);
+          return true; // Si hay error, incluir el pedido
+        }
       });
     }
 
     if (filtrosActuales.estado) {
       resultados = resultados.filter(pedido => 
-        pedido.estado.toLowerCase() === filtrosActuales.estado.toLowerCase()
+        pedido.estado?.toLowerCase() === filtrosActuales.estado.toLowerCase()
       );
     }
 
@@ -138,12 +133,13 @@ const HistorialPedidos = () => {
       );
     }
 
+    // Guardar el total antes de aplicar la paginación
+    setTotal(resultados.length);
+
     // Aplicar paginación
     const inicio = page * rowsPerPage;
     const fin = inicio + rowsPerPage;
-    
     setPedidosFiltrados(resultados.slice(inicio, fin));
-    setTotal(resultados.length);
   };
 
   useEffect(() => {
@@ -170,11 +166,9 @@ const HistorialPedidos = () => {
   };
 
   const handleLimpiarFiltros = () => {
-    const fechaActual = new Date();
-    fechaActual.setFullYear(2025);
     setFiltros({
-      fechaInicio: fechaActual,
-      fechaFin: fechaActual,
+      fechaInicio: null,
+      fechaFin: null,
       estado: '',
       usuario: ''
     });
@@ -325,8 +319,6 @@ const HistorialPedidos = () => {
                     size: "small"
                   }
                 }}
-                minDate={new Date(2025, 0, 1)}
-                maxDate={new Date(2025, 11, 31)}
               />
             </Grid>
             <Grid container={12} sm={6} md={3}>
@@ -340,8 +332,6 @@ const HistorialPedidos = () => {
                     size: "small"
                   }
                 }}
-                minDate={new Date(2025, 0, 1)}
-                maxDate={new Date(2025, 11, 31)}
               />
             </Grid>
             <Grid container={12} sm={6} md={2}>
@@ -402,6 +392,7 @@ const HistorialPedidos = () => {
                   <TableCell>Nombre</TableCell>
                   <TableCell>Usuario</TableCell>
                   <TableCell>Estado</TableCell>
+                  <TableCell align="right">Total</TableCell>
                   <TableCell align="right">Total Pagado</TableCell>
                   <TableCell align="center">Acciones</TableCell>
                 </TableRow>
@@ -409,18 +400,18 @@ const HistorialPedidos = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">Cargando...</TableCell>
+                    <TableCell colSpan={8} align="center">Cargando...</TableCell>
                   </TableRow>
                 ) : pedidosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">No hay pedidos que coincidan con los filtros</TableCell>
+                    <TableCell colSpan={8} align="center">No hay pedidos que coincidan con los filtros</TableCell>
                   </TableRow>
                 ) : (
                   pedidosFiltrados.map((pedido) => (
                     <TableRow key={pedido.id}>
                       <TableCell>{pedido.id}</TableCell>
                       <TableCell>{formatearFecha(pedido.fecha)}</TableCell>
-                      <TableCell>{pedido.nombre_pedido}</TableCell>
+                      <TableCell>{pedido.nombre_pedido || pedido.nombre}</TableCell>
                       <TableCell>{pedido.nombre_usuario}</TableCell>
                       <TableCell>
                         <Chip 
@@ -428,6 +419,9 @@ const HistorialPedidos = () => {
                           color={getEstadoColor(pedido.estado)}
                           size="small"
                         />
+                      </TableCell>
+                      <TableCell align="right">
+                        ${Number(pedido.total || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
                         ${Number(pedido.total_pagado || 0).toFixed(2)}
