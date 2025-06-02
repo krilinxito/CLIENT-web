@@ -117,20 +117,15 @@ const PedidosCancelados = () => {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
+    fetchPedidos();
 
-    const load = async () => {
-      if (mounted) {
-        await fetchPedidos();
-      }
-    };
-
-    load();
+    // Configurar un intervalo para actualizar los datos cada 5 minutos
+    const interval = setInterval(fetchPedidos, 300000); // 5 minutos = 300000 ms
 
     return () => {
-      mounted = false;
+      clearInterval(interval); // Limpiar el intervalo al desmontar
     };
-  }, []);
+  }, [fetchPedidos]);
 
   const handleViewProducts = async (order) => {
     try {

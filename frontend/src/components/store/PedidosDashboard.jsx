@@ -488,17 +488,32 @@ const PedidosDashboard = () => {
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                       <Tooltip title="Ver Productos">
-                        <IconButton onClick={() => handleViewProducts(order)} size="small">
+                        <IconButton 
+                          onClick={() => {
+                            setSelectedOrderId(order.id);
+                            setProductosModalOpen(true);
+                          }} 
+                          size="small"
+                        >
                           <ReceiptIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Ver Pagos">
-                        <IconButton onClick={() => handleViewPayments(order)} size="small">
+                        <IconButton 
+                          onClick={() => {
+                            setSelectedOrderId(order.id);
+                            setPagosModalOpen(true);
+                          }} 
+                          size="small"
+                        >
                           <PaymentIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Ver Ticket">
-                        <IconButton onClick={() => handleViewPDF(order)} size="small">
+                        <IconButton 
+                          onClick={() => handleViewPDF(order)} 
+                          size="small"
+                        >
                           <PictureAsPdfIcon />
                         </IconButton>
                       </Tooltip>
@@ -659,28 +674,6 @@ const PedidosDashboard = () => {
         />
       )}
 
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={3000} 
-        onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar 
-        open={!!success} 
-        autoHideDuration={3000} 
-        onClose={() => setSuccess(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity="success" sx={{ width: '100%' }}>
-          {success}
-        </Alert>
-      </Snackbar>
-
       <Dialog
         open={pdfPreviewOpen}
         onClose={() => {
@@ -704,6 +697,28 @@ const PedidosDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={3000} 
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar 
+        open={!!success} 
+        autoHideDuration={3000} 
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="success" sx={{ width: '100%' }}>
+          {success}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 };
