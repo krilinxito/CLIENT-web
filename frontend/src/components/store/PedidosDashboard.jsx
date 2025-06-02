@@ -410,81 +410,81 @@ const PedidosDashboard = () => {
             </TableHead>
             <TableBody>
               {orders.map(order => (
-                <TableRow key={order.id}>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="subtitle1">{order.nombre}</Typography>
-                      <Typography variant="caption" color="textSecondary">
-                        Por: {order.nombre_usuario}
-                      </Typography>
-                      <Typography variant="caption" color="textSecondary">
-                        {new Date(order.fecha).toLocaleString()}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <TableRow key={order.id}>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Typography variant="subtitle1">{order.nombre}</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          Por: {order.nombre_usuario}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {new Date(order.fecha).toLocaleString()}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {order.productos?.map(p => (
-                          <Chip 
-                            key={p.id}
-                            label={`${p.cantidad}x ${p.nombre}`}
-                            color={p.anulado ? "default" : "primary"}
-                            variant="outlined"
-                            sx={p.anulado ? { textDecoration: 'line-through' } : undefined}
-                          />
-                        ))}
+                            <Chip 
+                              key={p.id}
+                              label={`${p.cantidad}x ${p.nombre}`}
+                              color={p.anulado ? "default" : "primary"}
+                              variant="outlined"
+                              sx={p.anulado ? { textDecoration: 'line-through' } : undefined}
+                            />
+                          ))}
+                        </Box>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            setSelectedOrderId(order.id);
+                            setProductosModalOpen(true);
+                          }}
+                        >
+                          Gestionar Productos
+                        </Button>
                       </Box>
-                      <Button
-                        size="small"
-                        onClick={() => {
-                          setSelectedOrderId(order.id);
-                          setProductosModalOpen(true);
-                        }}
-                      >
-                        Gestionar Productos
-                      </Button>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {order.pagos?.map((p, index) => (
-                          <Chip
-                            key={index}
-                            label={`$${Number(p.monto).toFixed(2)} (${p.metodo})`}
-                            color="success"
-                            variant="outlined"
-                            size="small"
-                          />
-                        ))}
+                            <Chip
+                              key={index}
+                              label={`$${Number(p.monto).toFixed(2)} (${p.metodo})`}
+                              color="success"
+                              variant="outlined"
+                              size="small"
+                            />
+                          ))}
+                        </Box>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            setSelectedOrderId(order.id);
+                            setPagosModalOpen(true);
+                          }}
+                        >
+                          Gestionar Pagos
+                        </Button>
                       </Box>
-                      <Button
-                        size="small"
-                        onClick={() => {
-                          setSelectedOrderId(order.id);
-                          setPagosModalOpen(true);
-                        }}
-                      >
-                        Gestionar Pagos
-                      </Button>
-                    </Box>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="h6">
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="h6">
                       ${Number(order.total || 0).toFixed(2)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="h6" color="success.main">
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="h6" color="success.main">
                       ${Number(order.pagado || 0).toFixed(2)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="h6" color={order.pendiente > 0 ? "error.main" : "success.main"}>
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="h6" color={order.pendiente > 0 ? "error.main" : "success.main"}>
                       ${Math.max(0, Number(order.pendiente || 0)).toFixed(2)}
-                    </Typography>
-                  </TableCell>
+                      </Typography>
+                    </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                       <Tooltip title="Ver Productos">
@@ -519,7 +519,7 @@ const PedidosDashboard = () => {
                       </Tooltip>
                     </Box>
                   </TableCell>
-                </TableRow>
+                  </TableRow>
               ))}
             </TableBody>
           </Table>
@@ -564,7 +564,7 @@ const PedidosDashboard = () => {
                 value={selectedProduct}
                 onChange={(event, newValue) => {
                   setSelectedProduct(newValue);
-                }}
+          }}
                 renderInput={(params) => (
                   <TextField
                     {...params}

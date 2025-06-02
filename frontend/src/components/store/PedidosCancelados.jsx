@@ -56,21 +56,21 @@ const PedidosCancelados = () => {
       const pedidosCancelados = response.data.data.filter(pedido => {
         try {
           // Convertir la fecha del pedido a la zona horaria de La Paz
-          const fechaPedido = new Date(pedido.fecha);
+        const fechaPedido = new Date(pedido.fecha);
           fechaPedido.setHours(fechaPedido.getHours() - 4); // Ajuste manual a UTC-4 (La Paz)
-          
+        
           // Obtener la fecha actual en La Paz
           const ahora = new Date();
           const hoyLaPaz = new Date(ahora);
           hoyLaPaz.setHours(ahora.getHours() - 4); // Ajuste manual a UTC-4 (La Paz)
-          
-          // Comparar solo la fecha (ignorar la hora)
-          const esMismoDia = 
+        
+        // Comparar solo la fecha (ignorar la hora)
+        const esMismoDia = 
             fechaPedido.getFullYear() === hoyLaPaz.getFullYear() &&
             fechaPedido.getMonth() === hoyLaPaz.getMonth() &&
             fechaPedido.getDate() === hoyLaPaz.getDate();
-          
-          return pedido.estado === 'cancelado' && esMismoDia;
+        
+        return pedido.estado === 'cancelado' && esMismoDia;
         } catch (error) {
           console.error('Error procesando fecha del pedido:', error);
           return false;

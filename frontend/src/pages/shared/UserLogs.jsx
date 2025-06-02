@@ -57,7 +57,13 @@ const UserLogs = () => {
         response = await logsApi.obtenerLogs();
       }
       
-      const logsData = response.logs || [];
+      if (!response || !response.logs) {
+        throw new Error('No se recibieron datos de logs válidos');
+      }
+
+      const logsData = response.logs;
+      console.log('Logs recibidos:', logsData); // Para depuración
+      
       setLogs(logsData);
       
       // Extraer usuarios únicos para el filtro (solo para admin)
