@@ -394,19 +394,17 @@ const HistorialPedidos = () => {
                   <TableCell>Nombre</TableCell>
                   <TableCell>Usuario</TableCell>
                   <TableCell>Estado</TableCell>
-                  <TableCell align="right">Total</TableCell>
-                  <TableCell align="right">Total Pagado</TableCell>
                   <TableCell align="center">Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">Cargando...</TableCell>
+                    <TableCell colSpan={6} align="center">Cargando...</TableCell>
                   </TableRow>
                 ) : pedidosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">No hay pedidos que coincidan con los filtros</TableCell>
+                    <TableCell colSpan={6} align="center">No hay pedidos que coincidan con los filtros</TableCell>
                   </TableRow>
                 ) : (
                   pedidosFiltrados.map((pedido) => (
@@ -421,12 +419,6 @@ const HistorialPedidos = () => {
                           color={getEstadoColor(pedido.estado)}
                           size="small"
                         />
-                      </TableCell>
-                      <TableCell align="right">
-                        ${Number(pedido.total || 0).toFixed(2)}
-                      </TableCell>
-                      <TableCell align="right">
-                        ${Number(pedido.total_pagado || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="center">
                         <Tooltip title="Ver Productos">
