@@ -35,7 +35,7 @@ import PagosModal from '../../components/store/PagosModal';
 import contieneApi from '../../API/contieneApi';
 import { pagoApi } from '../../API/pagoApi';
 import { PDFViewer } from '@react-pdf/renderer';
-import PedidoTicketPDF from '../pdf/PedidoTicketPDF';
+import PedidoTicketPDF from '../../components/store/PedidoTicketPDF';
 
 const HistorialPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
