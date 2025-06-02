@@ -37,7 +37,6 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import PaymentIcon from '@mui/icons-material/Payment';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { PDFViewer } from '@react-pdf/renderer';
-import PedidoTicketPDF from '../pdf/PedidoTicketPDF';
 import { useAuth } from '../../context/AuthContext';
 
 // Importaciones corregidas
@@ -47,6 +46,7 @@ import { crearPedido, obtenerPedidosDelDia, editarPedido } from '../../API/pedid
 import { obtenerProductos } from '../../API/productsApi';
 import ProductosModal from './ProductosModal';
 import PagosModal from './PagosModal';
+import PedidoTicketPDF from './PedidoTicketPDF';
 
 const PedidosDashboard = () => {
   const { user } = useAuth();

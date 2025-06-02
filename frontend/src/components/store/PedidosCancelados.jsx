@@ -26,7 +26,7 @@ import { PDFViewer } from '@react-pdf/renderer';
 import { obtenerPedidosDelDia } from '../../API/pedidosApi';
 import ProductosModal from './ProductosModal';
 import PagosModal from './PagosModal';
-import PedidoTicketPDF from '../pdf/PedidoTicketPDF';
+import PedidoTicketPDF from './PedidoTicketPDF';
 import contieneApi from '../../API/contieneApi';
 import { pagoApi } from '../../API/pagoApi';
 
