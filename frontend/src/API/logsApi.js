@@ -17,14 +17,22 @@ const validateLogsResponse = (data) => {
     throw new Error('No se recibieron datos del servidor');
   }
   
-  // Validar si los logs vienen directamente o dentro de una propiedad
-  const logs = data.logs || data;
-  
-  if (!Array.isArray(logs)) {
-    throw new Error('El formato de los logs recibidos no es válido');
+  // Si es un array, devolverlo directamente
+  if (Array.isArray(data)) {
+    return data;
   }
   
-  return logs;
+  // Si es un objeto de log único, convertirlo en array
+  if (data.id && (data.login_date || data.fecha)) {
+    return [data];
+  }
+  
+  // Si los logs están dentro de una propiedad
+  if (data.logs) {
+    return Array.isArray(data.logs) ? data.logs : [data.logs];
+  }
+  
+  throw new Error('El formato de los logs recibidos no es válido');
 };
 
 export default {
@@ -33,7 +41,7 @@ export default {
     try {
       const response = await axios.get('/logs', getAuthHeaders());
       const logs = validateLogsResponse(response.data);
-      return { logs }; // Mantener consistencia con el formato esperado
+      return { logs };
     } catch (error) {
       console.error('Error en obtenerLogs:', error);
       if (error.response?.data) {
@@ -48,7 +56,7 @@ export default {
     try {
       const response = await axios.get(`/logs/${userId}`, getAuthHeaders());
       const logs = validateLogsResponse(response.data);
-      return { logs }; // Mantener consistencia con el formato esperado
+      return { logs };
     } catch (error) {
       console.error('Error en obtenerLogsPorUsuario:', error);
       if (error.response?.data) {

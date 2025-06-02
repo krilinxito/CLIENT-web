@@ -57,22 +57,28 @@ const UserLogs = () => {
         response = await logsApi.obtenerLogs();
       }
       
-      if (!response || !response.logs) {
-        throw new Error('No se recibieron datos de logs válidos');
-      }
-
-      const logsData = response.logs;
-      console.log('Logs recibidos:', logsData); // Para depuración
+      // Convertir la respuesta a un array si es un objeto único
+      const logsData = Array.isArray(response.logs) ? response.logs : [response.logs];
       
-      setLogs(logsData);
+      // Transformar los datos para que coincidan con el formato esperado
+      const logsFormateados = logsData.map(log => ({
+        fecha: log.login_date || log.fecha,
+        nombre_usuario: log.nombre || log.nombre_usuario,
+        accion: log.accion || 'Inicio de sesión',
+        detalles: `${log.email} - ${log.user_agent} - ${log.ip_address}`
+      })).filter(log => log.fecha); // Filtrar logs sin fecha
+
+      console.log('Logs formateados:', logsFormateados);
+      
+      setLogs(logsFormateados);
       
       // Extraer usuarios únicos para el filtro (solo para admin)
       if (user?.rol === 'admin') {
-        const usuariosUnicos = [...new Set(logsData.map(log => log.nombre_usuario))].filter(Boolean);
+        const usuariosUnicos = [...new Set(logsFormateados.map(log => log.nombre_usuario))].filter(Boolean);
         setUsuarios(usuariosUnicos);
       }
       
-      aplicarFiltros(logsData, filtros);
+      aplicarFiltros(logsFormateados, filtros);
     } catch (error) {
       console.error('Error al obtener logs:', error);
       setError('Error al cargar los logs: ' + (error.message || 'Error desconocido'));
