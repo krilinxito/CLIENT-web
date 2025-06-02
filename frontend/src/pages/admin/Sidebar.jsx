@@ -15,7 +15,8 @@ import {
   Settings,
   History,
   AccountBalanceWallet,
-  Assessment
+  Assessment,
+  Article
 } from '@mui/icons-material';
 
 const Sidebar = () => {
@@ -38,7 +39,7 @@ const Sidebar = () => {
           )}
         </NavLink>
         
-        <NavLink to="/pedidos-dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <NavLink to="/menu/pedidos" style={{ textDecoration: 'none', color: 'inherit' }}>
           {({ isActive }) => (
             <ListItemButton selected={isActive}>
               <ListItemIcon>
@@ -49,7 +50,7 @@ const Sidebar = () => {
           )}
         </NavLink>
 
-        <NavLink to="/pedidos-cancelados" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <NavLink to="/menu/pedidos-cancelados" style={{ textDecoration: 'none', color: 'inherit' }}>
           {({ isActive }) => (
             <ListItemButton selected={isActive}>
               <ListItemIcon>
@@ -60,7 +61,7 @@ const Sidebar = () => {
           )}
         </NavLink>
 
-        <NavLink to="/historial-pedidos" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <NavLink to="/menu/historial-pedidos" style={{ textDecoration: 'none', color: 'inherit' }}>
           {({ isActive }) => (
             <ListItemButton selected={isActive}>
               <ListItemIcon>
@@ -71,7 +72,7 @@ const Sidebar = () => {
           )}
         </NavLink>
 
-        <NavLink to="/resumen-caja" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <NavLink to="/menu/resumen-caja" style={{ textDecoration: 'none', color: 'inherit' }}>
           {({ isActive }) => (
             <ListItemButton selected={isActive}>
               <ListItemIcon>
@@ -82,7 +83,7 @@ const Sidebar = () => {
           )}
         </NavLink>
 
-        <NavLink to="/arqueos" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <NavLink to="/menu/arqueos" style={{ textDecoration: 'none', color: 'inherit' }}>
           {({ isActive }) => (
             <ListItemButton selected={isActive}>
               <ListItemIcon>
@@ -93,7 +94,7 @@ const Sidebar = () => {
           )}
         </NavLink>
 
-        <NavLink to="/estadisticas" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <NavLink to="/menu/estadisticas" style={{ textDecoration: 'none', color: 'inherit' }}>
           {({ isActive }) => (
             <ListItemButton selected={isActive}>
               <ListItemIcon>
@@ -104,9 +105,20 @@ const Sidebar = () => {
           )}
         </NavLink>
 
+        <NavLink to="/menu/logs" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <Article />
+              </ListItemIcon>
+              <ListItemText primary="Logs del Sistema" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
         <Divider sx={{ my: 1 }} />
 
-        <NavLink to="/configuracion" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <NavLink to="/menu/configuracion" style={{ textDecoration: 'none', color: 'inherit' }}>
           <ListItemButton>
             <ListItemIcon>
               <Settings />

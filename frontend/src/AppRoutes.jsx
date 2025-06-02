@@ -15,6 +15,7 @@ import ArqueosLista from './components/store/ArqueosLista';
 import Estadisticas from './pages/admin/Estadisticas';
 import HistorialPedidos from './pages/admin/HistorialPedidos';
 import UserConfig from './pages/shared/UserConfig';
+import UserLogs from './pages/shared/UserLogs';
 
 const AppRoutes = () => {
   const { isLoading, user } = useAuth();
@@ -34,29 +35,38 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Register />} />
 
-      {/* Rutas protegidas de admin */}
-      <Route element={<ProtectedRoute><AdminRoute><Layout /></AdminRoute></ProtectedRoute>}>
-        <Route path="/menu" element={<ProductosTable />} />
-        <Route path="/pedidos-dashboard" element={<PedidosDashboard/>}/>
-        <Route path="/pedidos-cancelados" element={<PedidosCancelados/>}/>
-        <Route path="/resumen-caja" element={<ResumenCaja/>}/>
-        <Route path="/arqueos" element={<ArqueosLista/>}/>
-        <Route path="/estadisticas" element={<Estadisticas/>}/>
-        <Route path="/historial-pedidos" element={<HistorialPedidos/>}/>
-        <Route path="/configuracion" element={<UserConfig />} />
+      {/* Rutas de administrador */}
+      <Route path="/menu" element={
+        <ProtectedRoute adminOnly>
+          <Layout />
+        </ProtectedRoute>
+      }>
+        <Route index element={<ProductosTable />} />
+        <Route path="pedidos" element={<PedidosDashboard />} />
+        <Route path="pedidos-cancelados" element={<PedidosCancelados />} />
+        <Route path="resumen-caja" element={<ResumenCaja />} />
+        <Route path="arqueos" element={<ArqueosLista />} />
+        <Route path="estadisticas" element={<Estadisticas />} />
+        <Route path="historial-pedidos" element={<HistorialPedidos />} />
+        <Route path="logs" element={<UserLogs />} />
+        <Route path="configuracion" element={<UserConfig />} />
       </Route>
 
-      {/* Rutas protegidas de usuario */}
-      <Route element={<ProtectedRoute><UserLayout /></ProtectedRoute>}>
-        <Route path="/usuario" element={<Navigate to="/usuario/pedidos-activos" replace />} />
-        <Route path="/usuario/pedidos-activos" element={<PedidosDashboard/>}/>
-        <Route path="/usuario/pedidos-cancelados" element={<PedidosCancelados/>}/>
-        <Route path="/usuario/resumen-caja" element={<ResumenCaja/>}/>
-        <Route path="/usuario/configuracion" element={<UserConfig />} />
+      {/* Rutas de usuario */}
+      <Route path="/usuario" element={
+        <ProtectedRoute>
+          <UserLayout />
+        </ProtectedRoute>
+      }>
+        <Route path="pedidos-activos" element={<PedidosDashboard />} />
+        <Route path="pedidos-cancelados" element={<PedidosCancelados />} />
+        <Route path="resumen-caja" element={<ResumenCaja />} />
+        <Route path="logs" element={<UserLogs />} />
+        <Route path="configuracion" element={<UserConfig />} />
       </Route>
 
-      {/* Ruta 404 */}
-      <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
+      {/* Ruta por defecto */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

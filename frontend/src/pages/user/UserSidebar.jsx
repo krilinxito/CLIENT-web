@@ -13,7 +13,8 @@ import {
   ListAlt,
   Settings,
   History,
-  AccountBalanceWallet
+  AccountBalanceWallet,
+  Article
 } from '@mui/icons-material';
 
 const UserSidebar = () => {
@@ -54,6 +55,17 @@ const UserSidebar = () => {
                 <AccountBalanceWallet />
               </ListItemIcon>
               <ListItemText primary="Resumen de Caja" />
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        <NavLink to="/usuario/logs" style={{ textDecoration: 'none', color: 'inherit' }}>
+          {({ isActive }) => (
+            <ListItemButton selected={isActive}>
+              <ListItemIcon>
+                <Article />
+              </ListItemIcon>
+              <ListItemText primary="Mi Historial de Actividad" />
             </ListItemButton>
           )}
         </NavLink>
