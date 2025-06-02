@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const verifyToken = useCallback(async (token) => {
     try {
       // Primero intentamos decodificar el token localmente
+      console.log(token);
       const decodedToken = jwtDecode(token);
       
       // Verificar si el token ha expirado
