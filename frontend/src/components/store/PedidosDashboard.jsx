@@ -124,7 +124,8 @@ const PedidosDashboard = () => {
             
             if (productosRes?.data?.productos) {
               productos = productosRes.data.productos;
-              totalPedido = productosRes.data.total || productos.reduce((sum, p) => {
+              // Calcular el total solo con productos no anulados
+              totalPedido = productos.reduce((sum, p) => {
                 if (p.anulado) return sum;
                 return sum + (safeNumber(p.precio) * safeNumber(p.cantidad));
               }, 0);
@@ -331,10 +332,10 @@ const PedidosDashboard = () => {
     if (!productos || !Array.isArray(productos)) return 0;
     
     return productos.reduce((sum, p) => {
-      // Si el producto está anulado o no tiene información, no lo sumamos
-      if (!p || !p.productoInfo || p.anulado) return sum;
+      // Si el producto está anulado o no tiene información básica, no lo sumamos
+      if (!p || p.anulado) return sum;
       
-      const precio = safeNumber(p.productoInfo.precio);
+      const precio = safeNumber(p.precio);
       const cantidad = safeNumber(p.cantidad);
       const subtotal = precio * cantidad;
       
