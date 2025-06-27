@@ -44,7 +44,7 @@ const Register = () => {
 
     try {
       await register(nombre, email, password, captchaToken);
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Error en el registro');
     } finally {
