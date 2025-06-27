@@ -59,17 +59,6 @@ const UserSidebar = () => {
           )}
         </NavLink>
 
-        <NavLink to="/usuario/logs" style={{ textDecoration: 'none', color: 'inherit' }}>
-          {({ isActive }) => (
-            <ListItemButton selected={isActive}>
-              <ListItemIcon>
-                <Article />
-              </ListItemIcon>
-              <ListItemText primary="Mi Historial de Actividad" />
-            </ListItemButton>
-          )}
-        </NavLink>
-
         <Divider sx={{ my: 1 }} />
         
         <NavLink to="/usuario/configuracion" style={{ textDecoration: 'none', color: 'inherit' }}>
