@@ -460,7 +460,46 @@ const PedidosDashboard = () => {
                   <TableRow key={order.id}>
                     <TableCell>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Typography variant="subtitle1">{order.nombre}</Typography>
+                        {editingOrder === order.id ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TextField
+                              size="small"
+                              value={newOrderName}
+                              onChange={(e) => setNewOrderName(e.target.value)}
+                              autoFocus
+                            />
+                            <IconButton 
+                              size="small" 
+                              color="primary"
+                              onClick={() => handleEditOrder(order.id, newOrderName)}
+                            >
+                              <SaveIcon />
+                            </IconButton>
+                            <IconButton 
+                              size="small" 
+                              color="error"
+                              onClick={() => {
+                                setEditingOrder(null);
+                                setNewOrderName('');
+                              }}
+                            >
+                              <CancelIcon />
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="subtitle1">{order.nombre}</Typography>
+                            <IconButton 
+                              size="small"
+                              onClick={() => {
+                                setEditingOrder(order.id);
+                                setNewOrderName(order.nombre);
+                              }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        )}
                         <Typography variant="caption" color="textSecondary">
                           Por: {order.nombre_usuario}
                         </Typography>
